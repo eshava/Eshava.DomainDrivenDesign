@@ -1,0 +1,115 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+using Eshava.Core.Extensions;
+using Eshava.Core.Linq.Interfaces;
+using Eshava.Core.Models;
+using Eshava.DomainDrivenDesign.Application.Settings;
+using Eshava.DomainDrivenDesign.Domain.Constants;
+using Eshava.DomainDrivenDesign.Domain.Extensions;
+using Eshava.DomainDrivenDesign.Domain.Interfaces;
+using Eshava.DomainDrivenDesign.Domain.Models;
+using Eshava.DomainDrivenDesign.Infrastructure.Interfaces;
+using Eshava.DomainDrivenDesign.Infrastructure.Models;
+using Microsoft.Extensions.Logging;
+
+namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
+{
+	public abstract class AbstractDomainModelRepository<TDomain, TData, TIdentifier, TScopedSettings> : AbstractEntityRepository<TDomain, TData, TIdentifier, TScopedSettings>
+		where TDomain : class, IEntity<TDomain, TIdentifier>
+		where TData : AbstractDatabaseModel<TIdentifier>, new()
+		where TIdentifier : struct
+		where TScopedSettings : AbstractScopedSettings
+	{
+		public AbstractDomainModelRepository(
+		   IDatabaseSettings databaseSettings,
+		   TScopedSettings scopedSettings,
+		   ITransformQueryEngine transformQueryEngine,
+		   ILogger logger
+		) : base(databaseSettings, scopedSettings, transformQueryEngine, logger)
+		{
+
+		}
+
+		public virtual Task<ResponseData<TIdentifier>> CreateAsync(TDomain model)
+		{
+			try
+			{
+				var newEntity = FromDomainModel(model);
+
+				return CreateAsync(newEntity);
+			}
+			catch (Exception ex)
+			{
+				var messageGuid = Logger.LogError(this, ScopedSettings, $"Error creating {typeof(TData).Name}", ex);
+
+				return ResponseData<TIdentifier>.CreateInternalServerError(MessageConstants.CREATEDATAERROR, ex, messageGuid).ToTask();
+			}
+		}
+
+		protected abstract TData FromDomainModel(TDomain model);
+
+		protected virtual TData FromDomainModel(TData data, TDomain model)
+		{
+			return data;
+		}
+
+		protected IEnumerable<Patch<TDomain1>> GenerateDomainPatchList<TData1, TDomain1>(
+			TData1 instance,
+			IEnumerable<(Expression<Func<TData1, object>> DataProperty, Expression<Func<TDomain1, object>> DomainProperty)> propertyMappings = null
+		)
+			where TDomain1 : class
+			where TData1 : AbstractDatabaseModel<TIdentifier>
+		{
+			var dataType = typeof(TData1);
+			var domainType = typeof(TDomain1);
+			var dataParameterExpression = Expression.Parameter(dataType, "p");
+			var dataPropertyInfos = dataType.GetProperties();
+			var domainPropertyInfos = domainType
+				.GetProperties()
+				.ToDictionary(p => p.Name, p => p);
+
+			var patches = new List<Patch<TDomain1>>();
+
+			var mappings = propertyMappings.ToDictionary(
+				m => m.DataProperty.GetMemberExpressionString(), 
+				m => domainPropertyInfos[m.DomainProperty.GetMemberExpressionString()]
+			);
+
+			foreach (var propertyInfo in dataPropertyInfos)
+			{
+				var domainPropertyInfo = mappings.ContainsKey(propertyInfo.Name)
+					? mappings[propertyInfo.Name]
+					: (domainPropertyInfos.ContainsKey(propertyInfo.Name) ? domainPropertyInfos[propertyInfo.Name] : null);
+
+				if (domainPropertyInfo is null)
+				{
+					continue;
+				}
+				
+				var value = propertyInfo.GetValue(instance);
+				var dataMemberExpression = Expression.MakeMemberAccess(dataParameterExpression, propertyInfo);
+				var domainMemberExpression = TransformQueryEngine.TransformMemberExpression<TData1, TDomain1>(dataMemberExpression);
+
+				patches.Add(Patch<TDomain1>.Create(
+					domainMemberExpression.Member.ConvertToMemberExpressionFunction<TDomain1, object>(domainMemberExpression.Parameter),
+					MapToDomainPropertyValue(propertyInfo.Name, value)
+				));
+			}
+
+			return patches;
+		}
+
+		protected object MapToDomainPropertyValue(string dataPropertyName, object value)
+		{
+			if (PropertyValueToDomainMappings.ContainsKey(dataPropertyName))
+			{
+				return PropertyValueToDomainMappings[dataPropertyName](value);
+			}
+
+			return value;
+		}
+	}
+}
