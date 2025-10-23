@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Net;
 using System.Reflection;
-using System.Threading.Tasks;
-using Eshava.Core.Models;
 using Eshava.DomainDrivenDesign.Domain.Attributes;
 using Eshava.DomainDrivenDesign.Domain.Models;
 
@@ -40,7 +37,7 @@ namespace Eshava.DomainDrivenDesign.Domain.Extensions
 				}
 
 				var domainPropertyInfo = domainPropertyInfos.FirstOrDefault(p => p.Name == dtoPropertyInfo.Name);
-				if (domainPropertyInfo is null)
+				if (domainPropertyInfo is null || !domainPropertyInfo.CanWrite)
 				{
 					continue;
 				}

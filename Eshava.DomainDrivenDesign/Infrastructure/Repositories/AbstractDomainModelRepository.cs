@@ -65,7 +65,7 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 		{
 			var dataType = typeof(TData1);
 			var domainType = typeof(TDomain1);
-			var dataParameterExpression = Expression.Parameter(dataType, "p");
+			var domainParameterExpression = Expression.Parameter(domainType, "p");
 			var dataPropertyInfos = dataType.GetProperties();
 			var domainPropertyInfos = domainType
 				.GetProperties()
@@ -73,10 +73,10 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 
 			var patches = new List<Patch<TDomain1>>();
 
-			var mappings = propertyMappings.ToDictionary(
-				m => m.DataProperty.GetMemberExpressionString(), 
+			var mappings = propertyMappings?.ToDictionary(
+				m => m.DataProperty.GetMemberExpressionString(),
 				m => domainPropertyInfos[m.DomainProperty.GetMemberExpressionString()]
-			);
+			) ?? [];
 
 			foreach (var propertyInfo in dataPropertyInfos)
 			{
@@ -88,13 +88,12 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 				{
 					continue;
 				}
-				
-				var value = propertyInfo.GetValue(instance);
-				var dataMemberExpression = Expression.MakeMemberAccess(dataParameterExpression, propertyInfo);
-				var domainMemberExpression = TransformQueryEngine.TransformMemberExpression<TData1, TDomain1>(dataMemberExpression);
 
+				var value = propertyInfo.GetValue(instance);
+				var domainMemberExpression = Expression.MakeMemberAccess(domainParameterExpression, domainPropertyInfo);
+				
 				patches.Add(Patch<TDomain1>.Create(
-					domainMemberExpression.Member.ConvertToMemberExpressionFunction<TDomain1, object>(domainMemberExpression.Parameter),
+					domainMemberExpression.ConvertToMemberExpressionFunction<TDomain1, object>(domainParameterExpression),
 					MapToDomainPropertyValue(propertyInfo.Name, value)
 				));
 			}
