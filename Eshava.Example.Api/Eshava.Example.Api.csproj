@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Eshava.Example.Application\Eshava.Example.Application.csproj" />
+		<ProjectReference Include="..\Eshava.Example.Domain\Eshava.Example.Domain.csproj" />
+		<ProjectReference Include="..\Eshava.Example.Infrastructure\Eshava.Example.Infrastructure.csproj" />
+	</ItemGroup>
+</Project>
