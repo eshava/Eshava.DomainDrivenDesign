@@ -80,9 +80,9 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 
 			foreach (var propertyInfo in dataPropertyInfos)
 			{
-				var domainPropertyInfo = mappings.ContainsKey(propertyInfo.Name)
-					? mappings[propertyInfo.Name]
-					: (domainPropertyInfos.ContainsKey(propertyInfo.Name) ? domainPropertyInfos[propertyInfo.Name] : null);
+				var domainPropertyInfo = mappings.TryGetValue(propertyInfo.Name, out var propInfoMapping)
+					? propInfoMapping 
+					: (domainPropertyInfos.TryGetValue(propertyInfo.Name, out var propInfo) ? propInfo : null);
 
 				if (domainPropertyInfo is null)
 				{
@@ -91,10 +91,10 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 
 				var value = propertyInfo.GetValue(instance);
 				var domainMemberExpression = Expression.MakeMemberAccess(domainParameterExpression, domainPropertyInfo);
-				
+
 				patches.Add(Patch<TDomain1>.Create(
 					domainMemberExpression.ConvertToMemberExpressionFunction<TDomain1, object>(domainParameterExpression),
-					MapToDomainPropertyValue(propertyInfo.Name, value)
+					MapToDomainPropertyValue(propertyInfo.Name, propInfoMapping)
 				));
 			}
 
@@ -103,12 +103,9 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 
 		protected object MapToDomainPropertyValue(string dataPropertyName, object value)
 		{
-			if (PropertyValueToDomainMappings.ContainsKey(dataPropertyName))
-			{
-				return PropertyValueToDomainMappings[dataPropertyName](value);
-			}
-
-			return value;
+			return PropertyValueToDomainMappings.TryGetValue(dataPropertyName, out var mapping)
+				? mapping(value)
+				: value;
 		}
 	}
 }

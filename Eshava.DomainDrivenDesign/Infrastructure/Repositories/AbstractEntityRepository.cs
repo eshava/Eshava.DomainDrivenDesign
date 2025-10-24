@@ -155,21 +155,13 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 
 		protected object MapToDataPropertyValue(string dataPropertyName, object value)
 		{
-			if (PropertyValueToDataMappings.ContainsKey(dataPropertyName))
-			{
-				return PropertyValueToDataMappings[dataPropertyName](value);
-			}
-
-			return value;
+			return PropertyValueToDataMappings.TryGetValue(dataPropertyName, out var mapping)
+				? mapping(value)
+				: value;
 		}
 
 		protected virtual string GetPropertyName(Patch<TDomain> patch)
 		{
-			//var sourceMemberExpression = patch.Property.Body.GetMemberExpression();
-			//var targetMemberExpression = TransformQueryEngine.TransformMemberExpression<TDomain, TData>(sourceMemberExpression);
-
-			//return targetMemberExpression.Member.Member.Name;
-
 			return patch.PropertyName;
 		}
 
