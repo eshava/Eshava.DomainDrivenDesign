@@ -58,7 +58,8 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 
 		protected IEnumerable<Patch<TDomain1>> GenerateDomainPatchList<TData1, TDomain1>(
 			TData1 instance,
-			IEnumerable<(Expression<Func<TData1, object>> DataProperty, Expression<Func<TDomain1, object>> DomainProperty)> propertyMappings = null
+			IEnumerable<(Expression<Func<TData1, object>> DataProperty, Expression<Func<TDomain1, object>> DomainProperty)> propertyMappings = null,
+			Dictionary<string, Func<object, object>> propertyValueToDomainMappings = null
 		)
 			where TDomain1 : class
 			where TData1 : AbstractDatabaseModel<TIdentifier>
@@ -81,7 +82,7 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 			foreach (var propertyInfo in dataPropertyInfos)
 			{
 				var domainPropertyInfo = mappings.TryGetValue(propertyInfo.Name, out var propInfoMapping)
-					? propInfoMapping 
+					? propInfoMapping
 					: (domainPropertyInfos.TryGetValue(propertyInfo.Name, out var propInfo) ? propInfo : null);
 
 				if (domainPropertyInfo is null)
@@ -94,16 +95,16 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 
 				patches.Add(Patch<TDomain1>.Create(
 					domainMemberExpression.ConvertToMemberExpressionFunction<TDomain1, object>(domainParameterExpression),
-					MapToDomainPropertyValue(propertyInfo.Name, propInfoMapping)
+					MapToDomainPropertyValue(propertyInfo.Name, value, propertyValueToDomainMappings)
 				));
 			}
 
 			return patches;
 		}
 
-		protected object MapToDomainPropertyValue(string dataPropertyName, object value)
+		protected object MapToDomainPropertyValue(string dataPropertyName, object value, Dictionary<string, Func<object, object>> propertyValueToDomainMappings)
 		{
-			return PropertyValueToDomainMappings.TryGetValue(dataPropertyName, out var mapping)
+			return (propertyValueToDomainMappings?.TryGetValue(dataPropertyName, out var mapping) ?? false)
 				? mapping(value)
 				: value;
 		}

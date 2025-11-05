@@ -24,7 +24,6 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 		where TIdentifier : struct
 		where TScopedSettings : AbstractScopedSettings
 	{
-		protected static Dictionary<string, Func<object, object>> PropertyValueToDomainMappings { get; set; } = [];
 		protected static Dictionary<string, Func<object, object>> PropertyValueToDataMappings { get; set; } = [];
 
 		public AbstractEntityRepository(

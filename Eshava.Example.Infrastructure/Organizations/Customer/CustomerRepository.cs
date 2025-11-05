@@ -24,6 +24,9 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 		private static readonly List<(Expression<Func<Customer, object>> Data, Expression<Func<Domain.Organizations.SomeFeature.Customer, object>> Domain)> _customerDataToCustomerDomain = [(p => p.CompanyName, p => p.Name)];
 		private static readonly List<(Expression<Func<Offices.Office, object>> Data, Expression<Func<Domain.Organizations.SomeFeature.Office, object>> Domain)> _officeDataToOfficeDomain = [];
 
+		private static Dictionary<string, Func<object, object>> _customerPropertyValueToDomainMappings = [];
+		private static Dictionary<string, Func<object, object>> _officePropertyValueToDomainMappings = [];
+
 		private readonly IValidationEngine _validationEngine;
 		private const string CUSTOMER = "customer";
 		private const string OFFICE = "office";
@@ -88,12 +91,12 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 					var officeModels = new List<Domain.Organizations.SomeFeature.Office>();
 					foreach (var officeItem in officeRawItems)
 					{
-						var officePatches = GenerateDomainPatchList(officeItem, _officeDataToOfficeDomain);
+						var officePatches = GenerateDomainPatchList(officeItem, _officeDataToOfficeDomain, _officePropertyValueToDomainMappings);
 						var officeModel = Domain.Organizations.SomeFeature.Office.DataToInstance(officePatches, _validationEngine);
 						officeModels.Add(officeModel);
 					}
 
-					var customerPatches = GenerateDomainPatchList(customerRawItem, _customerDataToCustomerDomain);
+					var customerPatches = GenerateDomainPatchList(customerRawItem, _customerDataToCustomerDomain, _customerPropertyValueToDomainMappings);
 					var customerModel = Domain.Organizations.SomeFeature.Customer.DataToInstance(customerPatches, officeModels, _validationEngine);
 
 					return customerModel.ToResponseData();
