@@ -24,12 +24,13 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 		[Required]
 		[MaxLength(250)]
 		public string Name { get; private set; }
+		public override string EventDomain => "organizations";
 
 		public static Office DataToInstance(IEnumerable<Patch<Office>> patches, IValidationEngine validationEngine)
 		{
 			var instance = new Office(validationEngine);
 			instance.ApplyPatches(patches.ToList());
-			instance.SetUnchanged();
+			instance.ClearChanges();
 
 			return instance;
 		}
