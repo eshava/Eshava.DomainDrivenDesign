@@ -14,12 +14,17 @@ A simple sample API is provided for better understanding of the approach. The in
 
 ## Domain-Project
 The project forms the core of the application. It contains only domain models, value objects, and C# enums. These are organized at the top level by domain and then either by feature or model name.
-There are three types of domain models: standalone models, complex models, and child models. The latter are contained in complex models. 
-Due to nesting, a child model can also be a complex model at the same time.
+There are three types of domain models: standalone models, aggregate models, and child models. The latter are contained in aggregate models. 
+Due to nesting, a child model can also be a aggregate model at the same time.
 All models have in common that they must be valid in themselves in order to be saved. 
 This means that each model implements a set of validation rules that monitor the state of the model. 
-Complex models can also contain validation rules that refer to their child models. For example, if two child models are not allowed to have the same name.
+Aggregate models can also contain validation rules that refer to their child models. For example, if two child models are not allowed to have the same name.
 Validation rules that require information from outside the domain model are not permitted.
+
+The lifecycle of a model, from creation to modification to deactivation, can be relevant for the own or other domains.
+For this reason, every model action generates a model-internal event. The standard events are "created", "changed" and "deactivated". Additional events can be added.
+The automatic generation of these events can be deactivated in each model and is activated by default. For an aggregate model, there are additional settings for creating events related to its child models.
+The events are distributed when saved (see Infrastructure Project).
 
 * Domain-Project
 	* Domain-Name
@@ -86,8 +91,9 @@ The infrastructure project only has access to the application project and the do
 The structure within this project is based on the domains and models. Model-independent resources are stored in separate domains or at a higher level wherever possible.
 The InfrastructureProviderService form the only interface to the application project. These encapsulate access to resource brokers such as model repositories, API wrappers, file access, etc. 
 These are also divided into read (query) and write (command) operations.
-When saving and loading complex models, the InfrastructureProviderServices orchestrates the individual resource accesses. 
+When saving and loading aggregate models, the InfrastructureProviderService orchestrates the individual resource accesses. 
 If, for example, a model consists of several individual models, the InfrastructureProviderService distributes the storage of the individual models to the respective repositories.
+The InfrastructureProviderServices has another task. It collects and distributes the events contained in the domain models. To do this, the domain model events are first converted into domain events. 
 
 * Infrastructure-Project
 	* Domain-Name
