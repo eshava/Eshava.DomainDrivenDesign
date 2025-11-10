@@ -107,7 +107,13 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 					.Distinct()
 					.ToList();
 
-				events.Add(new DomainEvent(eventName, Id ?? default, new DomainEventData(changedProperties, dataEntries)));
+				var processNotBeforeUtc = @event
+					.Where(e => e.ProcessNotBeforeUtc.HasValue)
+					.OrderByDescending(e => e.ProcessNotBeforeUtc.Value)
+					.FirstOrDefault()
+					?.ProcessNotBeforeUtc;
+
+				events.Add(new DomainEvent(eventName, Id ?? default, new DomainEventData(changedProperties, dataEntries), processNotBeforeUtc));
 			}
 
 			return events;
@@ -144,9 +150,9 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 			return _changes.ContainsKey(propertyName);
 		}
 
-		protected void AddEvent(string eventName, IEnumerable<string> changedProperties = null, object data = null)
+		protected void AddEvent(string eventName, IEnumerable<string> changedProperties = null, object data = null, DateTime? processNotBeforeUtc = null)
 		{
-			_eventList.Add(new EntityEvent(eventName, changedProperties, data));
+			_eventList.Add(new EntityEvent(eventName, changedProperties, data, processNotBeforeUtc));
 		}
 
 		protected virtual Task<ResponseData<bool>> IsStorableAsync()

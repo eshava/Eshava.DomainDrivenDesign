@@ -10,7 +10,7 @@ namespace Eshava.Example.Application.HostedServices
 	internal class DomainEventChannelProcessor : BackgroundService
 	{
 		private readonly Channel<DomainEvent> _domainEventChannel;
-		
+
 		public DomainEventChannelProcessor(
 			Channel<DomainEvent> domainEventChannel
 		)
@@ -24,7 +24,14 @@ namespace Eshava.Example.Application.HostedServices
 			{
 				var domainEvent = await _domainEventChannel.Reader.ReadAsync(stoppingToken);
 
-				Console.WriteLine($"{domainEvent.Event}: {domainEvent.EntityId?.ToString()}");
+				if (domainEvent.ProcessNotBeforeUtc.HasValue)
+				{
+					Console.WriteLine($"{domainEvent.Event}: {domainEvent.EntityId?.ToString()} -> {domainEvent.ProcessNotBeforeUtc.Value:yyyy.MM.dd HH:mm:ss}");
+				}
+				else
+				{
+					Console.WriteLine($"{domainEvent.Event}: {domainEvent.EntityId?.ToString()}");
+				}
 			}
 		}
 	}

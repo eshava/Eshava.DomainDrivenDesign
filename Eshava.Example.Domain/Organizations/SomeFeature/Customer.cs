@@ -158,7 +158,7 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 
 		protected override IEnumerable<DomainEvent> GetChildDomainEvents()
 		{
-			return _offices.SelectMany(office => office.GetDomainEvents()).ToList();
+			return GetChildDomainEvents<Office, int>(_offices);
 		}
 
 		protected override void ClearChildChanges()

@@ -60,7 +60,13 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 					var domainEventChangedName = EventModelName + DomainEventKeys.CHANGED;
 					if (domainEvents.All(de => de.Event != domainEventChangedName))
 					{
-						domainEvents.Add(new DomainEvent(domainEventChangedName, Id ?? default, null));
+						var processNotBeforeUtc = childDomainEvents
+							.Where(e => e.ProcessNotBeforeUtc.HasValue)
+							.OrderByDescending(e => e.ProcessNotBeforeUtc.Value)
+							.FirstOrDefault()
+							?.ProcessNotBeforeUtc;
+
+						domainEvents.Add(new DomainEvent(domainEventChangedName, Id ?? default, null, processNotBeforeUtc));
 					}
 				}
 
