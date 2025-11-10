@@ -102,8 +102,6 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 				return identifierResult;
 			}
 
-			entity.SetUnchanged();
-
 			return true.ToResponseData();
 		}
 
@@ -117,8 +115,6 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 			{
 				return updateResult;
 			}
-
-			entity.SetUnchanged();
 
 			return true.ToResponseData();
 		}
@@ -159,8 +155,6 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 			{
 				return deleteResult;
 			}
-
-			entity.SetUnchanged();
 
 			return true.ToResponseData();
 		}

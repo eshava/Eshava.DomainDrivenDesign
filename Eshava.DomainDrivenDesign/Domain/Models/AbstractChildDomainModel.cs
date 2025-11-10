@@ -12,7 +12,10 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 		)
 		: base(validation)
 		{
-			
+
 		}
+
+		public sealed override void ClearChanges() => base.ClearChanges();
+		public sealed override void ClearEvents() => base.ClearEvents();
 	}
 }

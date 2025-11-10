@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Threading.Channels;
 using Eshava.Core.Linq;
 using Eshava.Core.Linq.Interfaces;
 using Eshava.Core.Linq.Models;
 using Eshava.Core.Validation;
 using Eshava.Core.Validation.Interfaces;
+using Eshava.DomainDrivenDesign.Domain.Models;
+using Eshava.Example.Application.HostedServices;
 using Eshava.Example.Application.Organizations.SomeFeature.Customers.Commands.Create;
 using Eshava.Example.Application.Organizations.SomeFeature.Customers.Commands.CreateOffice;
 using Eshava.Example.Application.Organizations.SomeFeature.Customers.Commands.Deactivate;
@@ -35,8 +38,10 @@ namespace Eshava.Example.Application.Extensions
 		public static IServiceCollection RegisterHostedServices(this IServiceCollection services, IConfiguration configuration)
 		{
 			var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>();
-			
-			//services.AddHostedService<DummyHostedService>();
+
+			services
+				.AddHostedService<DomainEventChannelProcessor>()
+				;
 
 			return services;
 		}
@@ -48,6 +53,7 @@ namespace Eshava.Example.Application.Extensions
 				.AddSingleton<IWhereQueryEngine, WhereQueryEngine>()
 				.AddSingleton<ISortingQueryEngine, SortingQueryEngine>()
 				.AddSingleton<IValidationRuleEngine, ValidationRuleEngine>()
+				.AddSingleton(_ => Channel.CreateUnbounded<DomainEvent>(new UnboundedChannelOptions { SingleReader = true }))
 				;
 
 			return services

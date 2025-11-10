@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Transactions;
 using Eshava.Core.Extensions;
 using Eshava.Core.Models;
@@ -63,15 +64,24 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 				{
 					return updateResult.ConvertTo<TDomain>();
 				}
-
-				return entity.ToResponseData();
 			}
-
-			var createResult = await CreateAsync(entity);
-			if (createResult.IsFaulty)
+			else
 			{
-				return createResult.ConvertTo<TDomain>();
+				var createResult = await CreateAsync(entity);
+				if (createResult.IsFaulty)
+				{
+					return createResult.ConvertTo<TDomain>();
+				}
 			}
+
+			var domainEventResult = await BroadcastDomainEvents(entity.GetDomainEvents());
+			if (domainEventResult.IsFaulty)
+			{
+				return domainEventResult.ConvertTo<TDomain>();
+			}
+
+			entity.ClearChanges();
+			entity.ClearEvents();
 
 			return entity.ToResponseData();
 		}
@@ -102,8 +112,6 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 				return createCompletionResult;
 			}
 
-			entity.SetUnchanged();
-
 			return true.ToResponseData();
 		}
 
@@ -127,8 +135,6 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 				return updateCompletionResult;
 			}
 
-			entity.SetUnchanged();
-
 			return true.ToResponseData();
 		}
 
@@ -151,8 +157,6 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 			{
 				return deleteCompletionResult;
 			}
-
-			entity.SetUnchanged();
 
 			return true.ToResponseData();
 		}
@@ -198,6 +202,11 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 		}
 
 		protected virtual Task<ResponseData<bool>> ExcecuteCompletionActionsForDeleteAsync(TDomain entity)
+		{
+			return true.ToResponseDataAsync();
+		}
+
+		protected virtual Task<ResponseData<bool>> BroadcastDomainEvents(IEnumerable<DomainEvent> domainEvents)
 		{
 			return true.ToResponseDataAsync();
 		}

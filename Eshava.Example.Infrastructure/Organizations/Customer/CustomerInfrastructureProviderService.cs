@@ -1,7 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 using Eshava.Core.Extensions;
 using Eshava.Core.Models;
 using Eshava.Core.Validation.Interfaces;
+using Eshava.DomainDrivenDesign.Domain.Models;
 using Eshava.DomainDrivenDesign.Infrastructure.Interfaces;
 using Eshava.DomainDrivenDesign.Infrastructure.Providers;
 using Eshava.Example.Application.Organizations.SomeFeature.Customers.Commands;
@@ -12,9 +15,11 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 {
 	internal class CustomerInfrastructureProviderService : AbstractAggregateInfrastructureProvider<Domain.Organizations.SomeFeature.Customer, int>, ICustomerInfrastructureProviderService
 	{
+		private readonly Channel<DomainEvent> _domainEventChannel;
 		private readonly IOfficeRepository _officeRepository;
 
 		public CustomerInfrastructureProviderService(
+			Channel<DomainEvent> domainEventChannel,
 			ICustomerRepository customerRepository,
 			IOfficeRepository officeRepository,
 			IDatabaseSettings databaseSettings,
@@ -22,6 +27,7 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 			ILogger<CustomerInfrastructureProviderService> logger
 		) : base(databaseSettings, customerRepository)
 		{
+			_domainEventChannel = domainEventChannel;
 			_officeRepository = officeRepository;
 		}
 
@@ -55,6 +61,16 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 			if (officesResult.IsFaulty)
 			{
 				return officesResult;
+			}
+
+			return true.ToResponseData();
+		}
+
+		protected override async Task<ResponseData<bool>> BroadcastDomainEvents(IEnumerable<DomainEvent> domainEvents)
+		{
+			foreach (var domainEvent in domainEvents)
+			{
+				await _domainEventChannel.Writer.WriteAsync(domainEvent);
 			}
 
 			return true.ToResponseData();

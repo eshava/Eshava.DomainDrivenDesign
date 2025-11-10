@@ -23,6 +23,7 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 	{
 		private bool _isValid = false;
 		private Dictionary<string, Patch<TDomain>> _changes = [];
+		private List<EntityEvent> _eventList = [];
 		private static ConcurrentDictionary<Type, ImmutableHashSet<string>> _autoPatchBlocked = new();
 
 		protected AbstractEntity(IValidationEngine validationEngine)
@@ -44,6 +45,9 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 		[AutoPatchBlocked]
 		public virtual bool IsChanged => _changes.Count > 0;
 
+		public abstract string EventDomain { get; }
+		public string EventModelName => $"{EventDomain}.{typeof(TDomain).Name.ToLowerInvariant()}.";
+
 		public static ImmutableHashSet<string> AutoPatchBlocked
 		{
 			get
@@ -59,6 +63,7 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 		}
 
 		protected IValidationEngine ValidationEngine { get; private set; }
+		protected virtual bool CreateDomainEvents { get; } = true;
 
 		public ResponseData<bool> SetIdentifier(TIdentifier identifier)
 		{
@@ -73,9 +78,45 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 			return true.ToResponseData();
 		}
 
-		public void SetUnchanged()
+		public virtual void ClearChanges()
 		{
 			_changes.Clear();
+		}
+
+		public virtual void ClearEvents()
+		{
+			_eventList.Clear();
+		}
+
+		public virtual IReadOnlyList<DomainEvent> GetDomainEvents()
+		{
+			var events = new List<DomainEvent>();
+
+			var eventGroups = _eventList.GroupBy(e => e.EventName);
+
+			foreach (var @event in eventGroups)
+			{
+				var eventName = EventModelName + @event.Key;
+				var dataEntries = @event
+					.Where(e => e.Data is not null)
+					.Select(e => e.Data)
+					.ToList();
+
+				var changedProperties = @event
+					.SelectMany(e => e.ChangedProperties)
+					.Distinct()
+					.ToList();
+
+				var processNotBeforeUtc = @event
+					.Where(e => e.ProcessNotBeforeUtc.HasValue)
+					.OrderByDescending(e => e.ProcessNotBeforeUtc.Value)
+					.FirstOrDefault()
+					?.ProcessNotBeforeUtc;
+
+				events.Add(new DomainEvent(eventName, Id ?? default, new DomainEventData(changedProperties, dataEntries), processNotBeforeUtc));
+			}
+
+			return events;
 		}
 
 		public IReadOnlyList<Patch<TDomain>> GetChanges()
@@ -96,12 +137,22 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 				return applyResponse;
 			}
 
+			if (CreateDomainEvents)
+			{
+				AddEvent(DomainEventKeys.DEACTIVATED);
+			}
+
 			return Validate();
 		}
 
 		public bool IsPropertyChanged(string propertyName)
 		{
 			return _changes.ContainsKey(propertyName);
+		}
+
+		protected void AddEvent(string eventName, IEnumerable<string> changedProperties = null, object data = null, DateTime? processNotBeforeUtc = null)
+		{
+			_eventList.Add(new EntityEvent(eventName, changedProperties, data, processNotBeforeUtc));
 		}
 
 		protected virtual Task<ResponseData<bool>> IsStorableAsync()
@@ -127,6 +178,11 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 				return applyResponse;
 			}
 
+			if (CreateDomainEvents)
+			{
+				AddEvent(DomainEventKeys.CHANGED, changedProperties: patches.Select(p => p.PropertyName).ToList());
+			}
+
 			ExecuteAfterAction();
 
 			return Validate();
@@ -140,6 +196,11 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 			if (applyResponse.IsFaulty)
 			{
 				return applyResponse;
+			}
+
+			if (CreateDomainEvents)
+			{
+				AddEvent(DomainEventKeys.CREATED);
 			}
 
 			ExecuteAfterAction();

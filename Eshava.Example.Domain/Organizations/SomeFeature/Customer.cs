@@ -31,6 +31,7 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 		public Classification Classification { get; private set; }
 
 		public IReadOnlyList<Office> Offices => _offices.AsReadOnly();
+		public override string EventDomain => "organizations";
 
 		public static Customer DataToInstance(IEnumerable<Patch<Customer>> patches, IEnumerable<Office> officeList, IValidationEngine validationEngine)
 		{
@@ -42,7 +43,7 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 
 			instance.SetChilds(officeList);
 			instance.ApplyPatches(patches.ToList());
-			instance.SetUnchanged();
+			instance.ClearChanges();
 
 			return instance;
 		}
@@ -153,6 +154,21 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 		private void SetChilds(IEnumerable<Office> offices)
 		{
 			_offices = offices?.ToList() ?? new List<Office>();
+		}
+
+		protected override IEnumerable<DomainEvent> GetChildDomainEvents()
+		{
+			return GetChildDomainEvents<Office, int>(_offices);
+		}
+
+		protected override void ClearChildChanges()
+		{
+			ClearChildChanges<Office, int>(_offices);
+		}
+
+		protected override void ClearChildEvents()
+		{
+			ClearChildEvents<Office, int>(_offices);
 		}
 
 		protected virtual ResponseData<bool> CreatedOrChangedOffice(Office office)
