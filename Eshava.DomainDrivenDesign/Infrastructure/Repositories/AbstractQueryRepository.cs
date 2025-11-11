@@ -15,8 +15,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 {
-	public abstract class AbstractQueryRepository<TIdentifier> : AbstractRepository
-		where TIdentifier : struct
+	public abstract class AbstractQueryRepository : AbstractRepository
 	{
 		public AbstractQueryRepository(
 			IDatabaseSettings databaseSettings,

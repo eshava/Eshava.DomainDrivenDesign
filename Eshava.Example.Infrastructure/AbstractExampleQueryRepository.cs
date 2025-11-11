@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Eshava.Example.Infrastructure
 {
-	internal class AbstractExampleQueryRepository<TData, TIdentifier> : AbstractQueryRepository<TIdentifier>
+	internal class AbstractExampleQueryRepository<TData, TIdentifier> : AbstractQueryRepository
 		where TIdentifier : struct
 		where TData : AbstractExampleDatabaseModel<TIdentifier>
 	{
