@@ -1,14 +1,19 @@
-﻿using Eshava.Core.Extensions;
-using Eshava.Core.Models;
-using Eshava.DomainDrivenDesign.Domain.Constants;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using Eshava.Core.Extensions;
+using Eshava.Core.Models;
+using Eshava.DomainDrivenDesign.Domain.Constants;
+using Eshava.DomainDrivenDesign.Domain.Models;
 
 namespace Eshava.DomainDrivenDesign.Domain.Extensions
 {
 	public static class ExpressionExtensions
 	{
+		private static readonly Type _typeValueObject = typeof(AbstractValueObject);
+
 		public static Expression<Func<T, TargetPropertyType>> ConvertMemberExpressionFunction<T, SourcePropertyType, TargetPropertyType>(this Expression<Func<T, SourcePropertyType>> expression) where T : class
 		{
 			if (typeof(TargetPropertyType) == typeof(SourcePropertyType))
@@ -16,7 +21,9 @@ namespace Eshava.DomainDrivenDesign.Domain.Extensions
 				return Expression.Lambda<Func<T, TargetPropertyType>>(expression.Body, expression.Parameters.First());
 			}
 
-			return expression.Body.GetMemberExpression().ConvertToMemberExpressionFunction<T, TargetPropertyType>(expression.Parameters.First());
+			return expression.Body
+				.GetMemberExpression()
+				.ConvertToMemberExpressionFunction<T, TargetPropertyType>(expression.Parameters.First());
 		}
 
 		public static Expression<Func<T, TargetPropertyType>> ConvertToMemberExpressionFunction<T, TargetPropertyType>(this MemberExpression memberExpression, ParameterExpression parameter) where T : class
@@ -26,7 +33,6 @@ namespace Eshava.DomainDrivenDesign.Domain.Extensions
 			return Expression.Lambda<Func<T, TargetPropertyType>>(expression, parameter);
 		}
 
-
 		public static string GetMemberExpressionString<T>(this Expression<Func<T, object>> expression) where T : class
 		{
 			var memberExpression = GetMemberExpression(expression.Body);
@@ -34,7 +40,7 @@ namespace Eshava.DomainDrivenDesign.Domain.Extensions
 			return GetMemberExpressionString(memberExpression);
 		}
 
-		public static string GetMemberExpressionString(this MemberExpression memberExpression)
+		public static string GetMemberExpressionString(this MemberExpression memberExpression, bool lastMemberExpressionPart = false)
 		{
 			if (memberExpression == null)
 			{
@@ -43,12 +49,16 @@ namespace Eshava.DomainDrivenDesign.Domain.Extensions
 
 			var memberExpressionString = memberExpression.ToString();
 
-			return memberExpressionString.Substring(memberExpressionString.IndexOf(".") + 1);
+			return lastMemberExpressionPart
+				? memberExpressionString.Substring(memberExpressionString.LastIndexOf(".") + 1)
+				: memberExpressionString.Substring(memberExpressionString.IndexOf(".") + 1)
+				;
 		}
 
 		public static MemberExpression GetMemberExpression(this Expression expression)
 		{
 			MemberExpression memberExpression;
+
 			do
 			{
 				memberExpression = expression as MemberExpression;
@@ -116,6 +126,39 @@ namespace Eshava.DomainDrivenDesign.Domain.Extensions
 			}
 
 			return null;
+		}
+
+		/// <summary>
+		/// Collects all dto property values belonging to a value object
+		/// </summary>
+		/// <param name="parentMemberExpression">p.ValueObject</param>
+		/// <param name="memberExpression">p.ValueObject.ExamplePropertyName</param>
+		/// <param name="patchValue"></param>
+		/// <param name="domainPropertyInfos"></param>
+		/// <param name="valueObjectValueCollection"></param>
+		public static void CheckForValueObject(
+			this MemberExpression parentMemberExpression,
+			MemberExpression memberExpression,
+			object patchValue,
+			Dictionary<string, PropertyInfo> domainPropertyInfos,
+			Dictionary<string, (PropertyInfo Property, Dictionary<string, object> Values)> valueObjectValueCollection
+		)
+		{
+			var propertyName = memberExpression.GetMemberExpressionString(true);
+			var objectPropertyName = parentMemberExpression.GetMemberExpressionString();
+			if (domainPropertyInfos.TryGetValue(objectPropertyName, out var domainProperty) && domainProperty.PropertyType.IsSubclassOf(_typeValueObject))
+			{
+				if (!valueObjectValueCollection.TryGetValue(domainProperty.Name, out var valueObjectContainer))
+				{
+					valueObjectContainer = (domainProperty, new Dictionary<string, object>());
+					valueObjectValueCollection.Add(domainProperty.Name, valueObjectContainer);
+				}
+
+				if (!valueObjectContainer.Values.TryAdd(propertyName, patchValue))
+				{
+					valueObjectContainer.Values[propertyName] = patchValue;
+				}
+			}
 		}
 
 		private static object GetDefault(Type type)

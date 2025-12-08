@@ -41,5 +41,15 @@ namespace Eshava.DomainDrivenDesign.Domain.Extensions
 
 			return propertyInfo.ToPatch<TDomain, TValue>(propertyValue).ToResponseData();
 		}
+
+		public static string ToPropertyName(this string fieldName)
+		{
+			if (fieldName.IsNullOrEmpty())
+			{
+				return fieldName;
+			}
+
+			return fieldName.ToUpper()[0] + fieldName.Substring(1);
+		}
 	}
 }

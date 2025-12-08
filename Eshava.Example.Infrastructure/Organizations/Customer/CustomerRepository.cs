@@ -91,12 +91,12 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 					var officeModels = new List<Domain.Organizations.SomeFeature.Office>();
 					foreach (var officeItem in officeRawItems)
 					{
-						var officePatches = GenerateDomainPatchList(officeItem, _officeDataToOfficeDomain, _officePropertyValueToDomainMappings);
+						var officePatches = GenerateDomainPatchList(officeItem, _officeDataToOfficeDomain, _officePropertyValueToDomainMappings, CreateValueObjects, _validationEngine);
 						var officeModel = Domain.Organizations.SomeFeature.Office.DataToInstance(officePatches, _validationEngine);
 						officeModels.Add(officeModel);
 					}
 
-					var customerPatches = GenerateDomainPatchList(customerRawItem, _customerDataToCustomerDomain, _customerPropertyValueToDomainMappings);
+					var customerPatches = GenerateDomainPatchList(customerRawItem, _customerDataToCustomerDomain, _customerPropertyValueToDomainMappings, CreateValueObjects, _validationEngine);
 					var customerModel = Domain.Organizations.SomeFeature.Customer.DataToInstance(customerPatches, officeModels, _validationEngine);
 
 					return customerModel.ToResponseData();
@@ -123,7 +123,12 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 			var instance = new Customer
 			{
 				CompanyName = model.Name,
-				Classification = model.Classification
+				Classification = model.Classification,
+				AddressStreet = model.Address?.Street,
+				AddressStreetNumber = model.Address?.StreetNumber,
+				AddressCity = model.Address?.City,
+				AddressZipCode = model.Address?.ZipCode,
+				AddressCountry = model.Address?.Country
 			};
 
 			return FromDomainModel(instance, model);
@@ -138,6 +143,58 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 			}
 
 			return base.GetPropertyName(patch);
+		}
+
+		protected override void MapValueObjects(IEnumerable<Patch<Domain.Organizations.SomeFeature.Customer>> patches, IDictionary<string, object> dataModelChanges)
+		{
+			foreach (var patch in patches)
+			{
+				if (patch.PropertyName != nameof(Domain.Organizations.SomeFeature.Customer.Address))
+				{
+					continue;
+				}
+
+				var address = patch.Value as Domain.Organizations.SomeFeature.Address;
+				dataModelChanges.Add(nameof(Customer.AddressStreet), address?.Street);
+				dataModelChanges.Add(nameof(Customer.AddressStreetNumber), address?.StreetNumber);
+				dataModelChanges.Add(nameof(Customer.AddressCity), address?.City);
+				dataModelChanges.Add(nameof(Customer.AddressZipCode), address?.ZipCode);
+				dataModelChanges.Add(nameof(Customer.AddressCountry), address?.Country);
+			}
+		}
+
+		private static IEnumerable<Patch<Domain.Organizations.SomeFeature.Customer>> CreateValueObjects(Customer dataInstance, IValidationEngine validationEngine)
+		{
+			var address = new Domain.Organizations.SomeFeature.Address(
+				dataInstance.AddressStreet,
+				dataInstance.AddressStreetNumber,
+				dataInstance.AddressCity,
+				dataInstance.AddressZipCode,
+				dataInstance.AddressCountry
+			);
+
+			var addressValidationResult = validationEngine.Validate(address);
+
+			return addressValidationResult.IsValid
+				? [Patch<Domain.Organizations.SomeFeature.Customer>.Create(p => p.Address, address)]
+				: [];
+		}
+
+		private static IEnumerable<Patch<Domain.Organizations.SomeFeature.Office>> CreateValueObjects(Offices.Office dataInstance, IValidationEngine validationEngine)
+		{
+			var address = new Domain.Organizations.SomeFeature.Address(
+				dataInstance.AddressStreet,
+				dataInstance.AddressStreetNumber,
+				dataInstance.AddressCity,
+				dataInstance.AddressZipCode,
+				dataInstance.AddressCountry
+			);
+
+			var addressValidationResult = validationEngine.Validate(address);
+
+			return addressValidationResult.IsValid
+				? [Patch<Domain.Organizations.SomeFeature.Office>.Create(p => p.Address, address)]
+				: [];
 		}
 	}
 }

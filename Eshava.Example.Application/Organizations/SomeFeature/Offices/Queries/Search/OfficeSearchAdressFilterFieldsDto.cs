@@ -2,18 +2,10 @@
 using Eshava.Core.Linq.Enums;
 using Eshava.Core.Linq.Models;
 
-namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Queries.Search
+namespace Eshava.Example.Application.Organizations.SomeFeature.Offices.Queries.Search
 {
-	public class CustomerSearchFilterFieldsDto
+	public class OfficeSearchAdressFilterFieldsDto : NestedFilter
 	{
-		[AllowedCompareOperator(CompareOperator.Equal)]
-		[AllowedCompareOperator(CompareOperator.Contains)]
-		[AllowedCompareOperator(CompareOperator.StartsWith)]
-		public FilterField Name { get; set; }
-
-		[AllowedCompareOperator(CompareOperator.Equal)]
-		public FilterField Classification { get; set; }
-
 		[AllowedCompareOperator(CompareOperator.Equal)]
 		[AllowedCompareOperator(CompareOperator.Contains)]
 		[AllowedCompareOperator(CompareOperator.StartsWith)]

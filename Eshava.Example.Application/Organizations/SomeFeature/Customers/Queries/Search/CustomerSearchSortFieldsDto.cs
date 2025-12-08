@@ -6,5 +6,11 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Queries
 	{
 		public SortField Name { get; set; }
 		public SortField Classification { get; set; }
+		public SortField Street { get; set; }
+		public SortField StreetNumber { get; set; }
+		public SortField City { get; set; }
+		public SortField ZipCode { get; set; }
+		public SortField Country { get; set; }
+
 	}
 }

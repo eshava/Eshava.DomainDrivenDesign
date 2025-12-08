@@ -21,6 +21,10 @@ This means that each model implements a set of validation rules that monitor the
 Aggregate models can also contain validation rules that refer to their child models. For example, if two child models are not allowed to have the same name.
 Validation rules that require information from outside the domain model are not permitted.
 
+Value objects represent components of the domain model. These cannot be changed after creation and have a parameterized constructor. 
+The information contained in a value object is treated as a unit. If any information contained in the value object is changed, the entire value object must be recreated.
+Value objects are used as properties of the domain models. Nested value objects are not supported.
+
 The lifecycle of a model, from creation to modification to deactivation, can be relevant for the own or other domains.
 For this reason, every model action generates a model-internal event. The standard events are "created", "changed" and "deactivated". Additional events can be added.
 The automatic generation of these events can be deactivated in each model and is activated by default. For an aggregate model, there are additional settings for creating events related to its child models.
@@ -31,6 +35,7 @@ The events are distributed when saved (see Infrastructure Project).
 		* Feature-Name
 			* DomainModel1 
 			* DomainModel2
+			* ValueObject1
 			* C#-Enum1
 		* Model3-Name
 			* DomainModel3
@@ -59,6 +64,7 @@ All validation rules that represent a connection between the domain model and th
 					* IDomainModel1InfrastructureProviderService
 					* Create
 						* DomainModel1CreateDto
+						* DomainModel1CreateValueObjectDto
 						* DomainModel1CreateRequest
 						* DomainModel1CreateResponse
 						* DomainModel1CreateUseCase
@@ -93,6 +99,8 @@ The InfrastructureProviderService form the only interface to the application pro
 These are also divided into read (query) and write (command) operations.
 When saving and loading aggregate models, the InfrastructureProviderService orchestrates the individual resource accesses. 
 If, for example, a model consists of several individual models, the InfrastructureProviderService distributes the storage of the individual models to the respective repositories.
+In the current implementation, the information of a domain model and the associated value objects are mapped to the same data model.
+In principle, however, the information of a value object could also be stored in a separate table with reference to the main data model. 
 The InfrastructureProviderServices has another task. It collects and distributes the events contained in the domain models. To do this, the domain model events are first converted into domain events. 
 
 * Infrastructure-Project

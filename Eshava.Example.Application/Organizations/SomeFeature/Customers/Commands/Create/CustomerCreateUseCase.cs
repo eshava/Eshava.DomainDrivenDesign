@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Eshava.Core.Extensions;
 using Eshava.Core.Models;
@@ -18,6 +19,22 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Command
 {
 	internal class CustomerCreateUseCase : AbstractCreateUseCase<CustomerCreateDto, Customer, int>, ICustomerCreateUseCase
 	{
+		private static List<(Expression<Func<CustomerCreateDto, object>> Dto, Expression<Func<Customer, object>> Domain)> _customerMappings = [
+			(dto => dto.Street, domain => domain.Address.Street),
+			(dto => dto.StreetNumber, domain => domain.Address.StreetNumber),
+			(dto => dto.City, domain => domain.Address.City),
+			(dto => dto.ZipCode, domain => domain.Address.ZipCode),
+			(dto => dto.Country, domain => domain.Address.Country),
+		];
+
+		private static List<(Expression<Func<CustomerCreateOfficeDto, object>> Dto, Expression<Func<Office, object>> Domain)> _officeMappings = [
+			(dto => dto.Address.Street, domain => domain.Address.Street),
+			(dto => dto.Address.StreetNumber, domain => domain.Address.StreetNumber),
+			(dto => dto.Address.City, domain => domain.Address.City),
+			(dto => dto.Address.ZipCode, domain => domain.Address.ZipCode),
+			(dto => dto.Address.Country, domain => domain.Address.Country),
+		];
+
 		private readonly ExampleScopedSettings _scopedSettings;
 		private readonly ICustomerInfrastructureProviderService _customerInfrastructureProviderService;
 		private readonly ICustomerQueryInfrastructureProviderService _customerQueryInfrastructureProviderService;
@@ -54,7 +71,7 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Command
 					return constraintsResult.ConvertTo<CustomerCreateResponse>();
 				}
 
-				var createCustomerResult = Customer.CreateEntity(request.Customer, _validationEngine);
+				var createCustomerResult = Customer.CreateEntity(request.Customer, _validationEngine, _customerMappings);
 				if (createCustomerResult.IsFaulty)
 				{
 					return createCustomerResult.ConvertTo<CustomerCreateResponse>();
@@ -115,7 +132,7 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Command
 				return constraintsResult.ConvertTo<Office>();
 			}
 
-			return customer.AddOffice(office);
+			return customer.AddOffice(office, _officeMappings);
 		}
 
 		private async Task<ResponseData<bool>> CheckValidationConstraintsAsync(CustomerCreateDto customer)

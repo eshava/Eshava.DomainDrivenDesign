@@ -99,6 +99,8 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 					}
 				}
 
+				MapValueObjects(patches, changes);
+
 				using (var connection = DatabaseSettings.GetConnection())
 				{
 					var result = await connection.UpdatePatchAsync<TData>(changes);
@@ -157,6 +159,11 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 			return PropertyValueToDataMappings.TryGetValue(dataPropertyName, out var mapping)
 				? mapping(value)
 				: value;
+		}
+
+		protected virtual void MapValueObjects(IEnumerable<Patch<TDomain>> patches, IDictionary<string, object> dataModelChanges)
+		{
+
 		}
 
 		protected virtual string GetPropertyName(Patch<TDomain> patch)

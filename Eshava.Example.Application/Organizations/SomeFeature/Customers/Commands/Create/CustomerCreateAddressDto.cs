@@ -1,31 +1,27 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using Eshava.Example.Domain.Organizations.SomeFeature;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Commands.Create
 {
-	public class CustomerCreateDto
+	public class CustomerCreateAddressDto
 	{
 		[Required]
-		[MaxLength(250)]
-		public string Name { get; set; }
-		public Classification Classification { get; set; }
-
 		[MaxLength(50)]
 		public string Street { get; set; }
 
+		[Required]
 		[MaxLength(10)]
 		public string StreetNumber { get; set; }
 
+		[Required]
 		[MaxLength(50)]
 		public string City { get; set; }
 
+		[Required]
 		[MaxLength(20)]
 		public string ZipCode { get; set; }
 
+		[Required]
 		[MaxLength(50)]
 		public string Country { get; set; }
-
-		public IEnumerable<CustomerCreateOfficeDto> Offices { get; set; }
 	}
 }

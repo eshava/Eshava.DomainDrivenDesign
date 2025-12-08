@@ -30,6 +30,8 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 		[Enumeration(invalidateZero: true)]
 		public Classification Classification { get; private set; }
 
+		public Address Address { get; private set; }
+
 		public IReadOnlyList<Office> Offices => _offices.AsReadOnly();
 		public override string EventDomain => "organizations";
 
@@ -64,13 +66,19 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 			return instance.ToResponseData();
 		}
 
-		public static ResponseData<Customer> CreateEntity(string name, Classification classification, IValidationEngine validationEngine)
+		public static ResponseData<Customer> CreateEntity(string name, string street, string streetNumber, string city, string zipCode, string country, Classification classification, IValidationEngine validationEngine)
 		{
 			var patches = new List<Patch<Customer>>()
 			{
 				Patch<Customer>.Create(p => p.Name, name),
 				Patch<Customer>.Create(p => p.Classification, classification)
 			};
+
+			var address = CreateAddressInstance(street, streetNumber, city, zipCode, country);
+			if (address is not null)
+			{
+				patches.Add(Patch<Customer>.Create(p => p.Address, address));
+			}
 
 			var instance = new Customer(validationEngine);
 			instance.SetChilds(null);
@@ -179,6 +187,22 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 		protected override void Init()
 		{
 			_officeChanged = CreatedOrChangedOffice;
+		}
+
+		private static Address CreateAddressInstance(string street, string streetNumber, string city, string zipCode, string country)
+		{
+			if (street.IsNullOrEmpty()
+				&& streetNumber.IsNullOrEmpty()
+				&& city.IsNullOrEmpty()
+				&& zipCode.IsNullOrEmpty()
+				&& country.IsNullOrEmpty())
+			{
+				// All address parts are not set
+
+				return null;
+			}
+
+			return new Address(street, streetNumber, city, zipCode, country);
 		}
 	}
 }

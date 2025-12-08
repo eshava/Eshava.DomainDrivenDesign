@@ -19,7 +19,6 @@ using Microsoft.Extensions.Logging;
 using DTOS_READ = Eshava.Example.Application.Organizations.SomeFeature.Customers.Queries.Read;
 using DTOS_SEARCH = Eshava.Example.Application.Organizations.SomeFeature.Customers.Queries.Search;
 
-
 namespace Eshava.Example.Infrastructure.Organizations.Customers
 {
 	internal class CustomerQueryRepository : AbstractExampleQueryRepository<Customer, int>, ICustomerQueryRepository
@@ -111,8 +110,18 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 					 {CUSTOMER}.{nameof(Customer.Id)}
 					,{CUSTOMER}.{nameof(Customer.CompanyName)}
 					,{CUSTOMER}.{nameof(Customer.Classification)}
+					,{CUSTOMER}.{nameof(Customer.AddressStreet)}
+					,{CUSTOMER}.{nameof(Customer.AddressStreetNumber)}
+					,{CUSTOMER}.{nameof(Customer.AddressCity)}
+					,{CUSTOMER}.{nameof(Customer.AddressZipCode)}
+					,{CUSTOMER}.{nameof(Customer.AddressCountry)}
 					,{OFFICE}.{nameof(Offices.Office.Id)}
 					,{OFFICE}.{nameof(Offices.Office.Name)}
+					,{OFFICE}.{nameof(Offices.Office.AddressStreet)}
+					,{OFFICE}.{nameof(Offices.Office.AddressStreetNumber)}
+					,{OFFICE}.{nameof(Offices.Office.AddressCity)}
+					,{OFFICE}.{nameof(Offices.Office.AddressZipCode)}
+					,{OFFICE}.{nameof(Offices.Office.AddressCountry)}
 				FROM
 					 {TypeAnalyzer.GetTableName<Customer>()} {CUSTOMER}
 				LEFT JOIN
@@ -135,6 +144,11 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 							Id = mapper.GetValue<int>(nameof(Customer.Id), CUSTOMER),
 							Name = mapper.GetValue<string>(nameof(Customer.CompanyName), CUSTOMER),
 							Classification = mapper.GetValue<Domain.Organizations.SomeFeature.Classification>(nameof(Customer.Classification), CUSTOMER),
+							Street = mapper.GetValue<string>(nameof(Customer.AddressStreet), CUSTOMER),
+							StreetNumber = mapper.GetValue<string>(nameof(Customer.AddressStreetNumber), CUSTOMER),
+							City = mapper.GetValue<string>(nameof(Customer.AddressCity), CUSTOMER),
+							ZipCode = mapper.GetValue<string>(nameof(Customer.AddressZipCode), CUSTOMER),
+							Country = mapper.GetValue<string>(nameof(Customer.AddressCountry), CUSTOMER),
 							Offices = mapper.GetValue<int>(nameof(Offices.Office.Id), OFFICE) == default
 								? new List<DTOS_READ.CustomerReadOfficeDto>()
 								: new List<DTOS_READ.CustomerReadOfficeDto>
@@ -143,6 +157,14 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 									{
 										Id = mapper.GetValue<int>(nameof(Offices.Office.Id), OFFICE),
 										Name = mapper.GetValue<string>(nameof(Offices.Office.Name), OFFICE),
+										Address = new DTOS_READ.CustomerReadAddressDto
+										{
+											Street = mapper.GetValue<string>(nameof(Offices.Office.AddressStreet), OFFICE),
+											StreetNumber = mapper.GetValue<string>(nameof(Offices.Office.AddressStreetNumber), OFFICE),
+											City = mapper.GetValue<string>(nameof(Offices.Office.AddressCity), OFFICE),
+											ZipCode = mapper.GetValue<string>(nameof(Offices.Office.AddressZipCode), OFFICE),
+											Country = mapper.GetValue<string>(nameof(Offices.Office.AddressCountry), OFFICE)
+										}
 									}
 								}
 						};
@@ -211,7 +233,12 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 					{
 						Id = entity.Id,
 						Name = entity.CompanyName,
-						Classification = entity.Classification
+						Classification = entity.Classification,
+						Street = entity.AddressStreet,
+						StreetNumber = entity.AddressStreetNumber,
+						City = entity.AddressCity,
+						ZipCode = entity.AddressZipCode,
+						Country = entity.AddressCountry,
 					})
 					.ToList();
 

@@ -11,6 +11,11 @@ CREATE TABLE [organizations].[Customers]
     [Status] [int] NOT NULL,
     [CompanyName] [nvarchar](255) NOT NULL,
     [Classification] [int] NOT NULL,
+	[AddressStreet] [nvarchar](50) NULL,
+	[AddressStreetNumber] [nvarchar](10) NULL,
+	[AddressCity] [nvarchar](50) NULL,
+	[AddressZipCode] [nvarchar](20) NULL,
+	[AddressCountry] [nvarchar](50) NULL,
     CONSTRAINT [PK_Organizations_Customers_Id] PRIMARY KEY CLUSTERED ([Id])
 ); 
 GO
@@ -25,6 +30,11 @@ CREATE TABLE [organizations].[Offices]
     [Status] [int] NOT NULL,
     [Name] [nvarchar](255) NOT NULL,
     [CustomerId] [int] NOT NULL,
+	[AddressStreet] [nvarchar](50) NULL,
+	[AddressStreetNumber] [nvarchar](10) NULL,
+	[AddressCity] [nvarchar](50) NULL,
+	[AddressZipCode] [nvarchar](20) NULL,
+	[AddressCountry] [nvarchar](50) NULL,
     CONSTRAINT [PK_Organizations_Offices_Id] PRIMARY KEY CLUSTERED ([Id])
 ); 
 

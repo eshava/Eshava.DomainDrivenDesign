@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Eshava.Core.Extensions;
 using Eshava.Core.Linq.Interfaces;
 using Eshava.Core.Models;
+using Eshava.Core.Validation.Interfaces;
 using Eshava.DomainDrivenDesign.Application.Settings;
 using Eshava.DomainDrivenDesign.Domain.Constants;
 using Eshava.DomainDrivenDesign.Domain.Extensions;
@@ -59,7 +60,9 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 		protected IEnumerable<Patch<TDomain1>> GenerateDomainPatchList<TData1, TDomain1>(
 			TData1 instance,
 			IEnumerable<(Expression<Func<TData1, object>> DataProperty, Expression<Func<TDomain1, object>> DomainProperty)> propertyMappings = null,
-			Dictionary<string, Func<object, object>> propertyValueToDomainMappings = null
+			Dictionary<string, Func<object, object>> propertyValueToDomainMappings = null,
+			Func<TData1, IValidationEngine, IEnumerable<Patch<TDomain1>>> createValueObjectPatches = null,
+			IValidationEngine validationEngine = null
 		)
 			where TDomain1 : class
 			where TData1 : AbstractDatabaseModel<TIdentifier>
@@ -97,6 +100,15 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 					domainMemberExpression.ConvertToMemberExpressionFunction<TDomain1, object>(domainParameterExpression),
 					MapToDomainPropertyValue(propertyInfo.Name, value, propertyValueToDomainMappings)
 				));
+			}
+
+			if (createValueObjectPatches is not null)
+			{
+				var valueObjectPatches = createValueObjectPatches(instance, validationEngine);
+				if (valueObjectPatches.Any())
+				{
+					patches.AddRange(valueObjectPatches);
+				}
 			}
 
 			return patches;

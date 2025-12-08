@@ -154,6 +154,11 @@ namespace Eshava.Example.Infrastructure.Organizations.Offices
 					 {OFFICE}.{nameof(Office.Id)}
 					,{OFFICE}.{nameof(Office.CustomerId)}
 					,{OFFICE}.{nameof(Office.Name)}
+					,{OFFICE}.{nameof(Office.AddressStreet)}
+					,{OFFICE}.{nameof(Office.AddressStreetNumber)}
+					,{OFFICE}.{nameof(Office.AddressCity)}
+					,{OFFICE}.{nameof(Office.AddressZipCode)}
+					,{OFFICE}.{nameof(Office.AddressCountry)}
 				FROM
 					 {TypeAnalyzer.GetTableName<Office>()} {OFFICE}
 				WHERE
@@ -171,7 +176,15 @@ namespace Eshava.Example.Infrastructure.Organizations.Offices
 						{
 							Id = mapper.GetValue<int>(nameof(Office.Id), OFFICE),
 							CustomerId = mapper.GetValue<int>(nameof(Office.CustomerId), OFFICE),
-							Name = mapper.GetValue<string>(nameof(Office.Name), OFFICE)
+							Name = mapper.GetValue<string>(nameof(Office.Name), OFFICE),
+							Address = new DTOS_READ.OfficeReadAddressDto
+							{
+								Street = mapper.GetValue<string>(nameof(Office.AddressStreet), OFFICE),
+								StreetNumber = mapper.GetValue<string>(nameof(Office.AddressStreetNumber), OFFICE),
+								City = mapper.GetValue<string>(nameof(Office.AddressCity), OFFICE),
+								ZipCode = mapper.GetValue<string>(nameof(Office.AddressZipCode), OFFICE),
+								Country = mapper.GetValue<string>(nameof(Office.AddressCountry), OFFICE)
+							}
 						};
 
 						return dto;
@@ -243,7 +256,23 @@ namespace Eshava.Example.Infrastructure.Organizations.Offices
 						CustomerId = entity.CustomerId,
 						CustomerName = entity.Customer.CompanyName,
 						CustomerClassification = entity.Customer.Classification,
-						Name = entity.Name
+						Name = entity.Name,
+						CustomerAddress = new DTOS_SEARCH.OfficeSearchAddressDto
+						{
+							Street = entity.Customer.AddressStreet,
+							StreetNumber = entity.Customer.AddressStreetNumber,
+							City = entity.Customer.AddressCity,
+							ZipCode = entity.Customer.AddressZipCode,
+							Country = entity.Customer.AddressCountry,
+						},
+						OfficeAddress = new DTOS_SEARCH.OfficeSearchAddressDto
+						{
+							Street = entity.AddressStreet,
+							StreetNumber = entity.AddressStreetNumber,
+							City = entity.AddressCity,
+							ZipCode = entity.AddressZipCode,
+							Country = entity.AddressCountry,
+						}
 					})
 					.ToList();
 

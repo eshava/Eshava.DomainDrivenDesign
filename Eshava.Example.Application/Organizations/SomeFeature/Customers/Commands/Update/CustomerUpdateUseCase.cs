@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using Eshava.Core.Extensions;
@@ -23,6 +24,22 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Command
 {
 	internal class CustomerUpdateUseCase : AbstractUpdateUseCase<Customer, CustomerUpdateDto, int>, ICustomerUpdateUseCase
 	{
+		private static List<(Expression<Func<CustomerUpdateDto, object>> Dto, Expression<Func<Customer, object>> Domain)> _customerMappings = [
+			(dto => dto.Street, domain => domain.Address.Street),
+			(dto => dto.StreetNumber, domain => domain.Address.StreetNumber),
+			(dto => dto.City, domain => domain.Address.City),
+			(dto => dto.ZipCode, domain => domain.Address.ZipCode),
+			(dto => dto.Country, domain => domain.Address.Country),
+		];
+
+		private static List<(Expression<Func<CustomerUpdateOfficeDto, object>> Dto, Expression<Func<Office, object>> Domain)> _officeMappings = [
+			(dto => dto.Address.Street, domain => domain.Address.Street),
+			(dto => dto.Address.StreetNumber, domain => domain.Address.StreetNumber),
+			(dto => dto.Address.City, domain => domain.Address.City),
+			(dto => dto.Address.ZipCode, domain => domain.Address.ZipCode),
+			(dto => dto.Address.Country, domain => domain.Address.Country),
+		];
+
 		private readonly ExampleScopedSettings _scopedSettings;
 		private readonly ICustomerInfrastructureProviderService _customerInfrastructureProviderService;
 		private readonly ICustomerQueryInfrastructureProviderService _customerQueryInfrastructureProviderService;
@@ -60,7 +77,13 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Command
 					return MessageConstants.NOTEXISTING.ToFaultyResponse<CustomerUpdateResponse>();
 				}
 
-				var patchesResult = request.Customer.GetPatchInformation<CustomerUpdateDto, Customer>();
+				var patchesResult = request.Customer.GetPatchInformation(_customerMappings);
+				if (patchesResult.IsFaulty)
+				{
+					return patchesResult.ConvertTo<CustomerUpdateResponse>();
+				}
+
+				patchesResult = patchesResult.Data.CheckAndConvertValueObjectPatches(customerResult.Data);
 				if (patchesResult.IsFaulty)
 				{
 					return patchesResult.ConvertTo<CustomerUpdateResponse>();
@@ -117,7 +140,7 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Command
 
 		private async Task<ResponseData<bool>> ProcessOfficesChangesAsync(Customer customer, PartialPutDocument<CustomerUpdateDto> customerDocument)
 		{
-			var changesResult = customerDocument.GetPatchInformation<CustomerUpdateDto, CustomerUpdateOfficeDto, Office, int>(p => p.Offices, []);
+			var changesResult = customerDocument.GetPatchInformation<CustomerUpdateDto, CustomerUpdateOfficeDto, Office, int>(p => p.Offices, _officeMappings);
 			if (changesResult.IsFaulty)
 			{
 				return changesResult.ConvertTo<bool>();
@@ -228,7 +251,13 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Command
 				return constraintsResult.ConvertTo<Office>();
 			}
 
-			var officePatchResult = officeResult.Data.Patch(officePatches.Value);
+			var patchesResult = officePatches.Value.CheckAndConvertValueObjectPatches(officeResult.Data);
+			if (patchesResult.IsFaulty)
+			{
+				return patchesResult.ConvertTo<Office>();
+			}
+
+			var officePatchResult = officeResult.Data.Patch(patchesResult.Data);
 			if (officePatchResult.IsFaulty)
 			{
 				return officePatchResult.ConvertTo<Office>();

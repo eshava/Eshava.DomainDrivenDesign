@@ -30,5 +30,15 @@ namespace Eshava.DomainDrivenDesign.Domain.Extensions
 
 			return false;
 		}
+
+		public static object GetDefault(this Type type)
+		{
+			if (type.IsValueType)
+			{
+				return Activator.CreateInstance(type);
+			}
+
+			return null;
+		}
 	}
 }

@@ -20,5 +20,8 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Offices.Queries.S
 
 		[AllowedCompareOperator(CompareOperator.Equal)]
 		public FilterField CustomerClassification { get; set; }
+
+		public OfficeSearchAdressFilterFieldsDto CustomerAddress { get; set; }
+		public OfficeSearchAdressFilterFieldsDto OfficeAddress { get; set; }
 	}
 }

@@ -9,5 +9,8 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Offices.Queries.S
 		public string CustomerName { get; set; }
 		public Classification CustomerClassification { get; set; }
 		public string Name { get; set; }
+
+		public OfficeSearchAddressDto CustomerAddress { get; set; }
+		public OfficeSearchAddressDto OfficeAddress { get; set; }
 	}
 }

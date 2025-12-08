@@ -24,6 +24,8 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 		[Required]
 		[MaxLength(250)]
 		public string Name { get; private set; }
+		public Address Address { get; private set; }
+
 		public override string EventDomain => "organizations";
 
 		public static Office DataToInstance(IEnumerable<Patch<Office>> patches, IValidationEngine validationEngine)
@@ -50,12 +52,17 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 			return instance.ToResponseData();
 		}
 
-		internal static ResponseData<Office> CreateEntity(bool @public, string name, IValidationEngine validationEngine)
+		internal static ResponseData<Office> CreateEntity(bool @public, string name, Address address, IValidationEngine validationEngine)
 		{
 			var patches = new List<Patch<Office>>()
 			{
 				Patch<Office>.Create(p => p.Name, name)
 			};
+
+			if (address is not null)
+			{
+				patches.Add(Patch<Office>.Create(p => p.Address, address));
+			}
 
 			var instance = new Office(validationEngine);
 			var createResult = instance.Create(patches);

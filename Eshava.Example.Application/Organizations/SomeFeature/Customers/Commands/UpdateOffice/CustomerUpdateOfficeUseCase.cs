@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using Eshava.Core.Extensions;
@@ -22,6 +23,14 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Command
 {
 	internal class CustomerUpdateOfficeUseCase : AbstractUpdateUseCase<Customer, CustomerUpdateOfficeDto, int>, ICustomerUpdateOfficeUseCase
 	{
+		private static List<(Expression<Func<CustomerUpdateOfficeDto, object>> Dto, Expression<Func<Office, object>> Domain)> _mappings = [
+			(dto => dto.Address.Street, domain => domain.Address.Street),
+			(dto => dto.Address.StreetNumber, domain => domain.Address.StreetNumber),
+			(dto => dto.Address.City, domain => domain.Address.City),
+			(dto => dto.Address.ZipCode, domain => domain.Address.ZipCode),
+			(dto => dto.Address.Country, domain => domain.Address.Country),
+		];
+
 		private readonly ExampleScopedSettings _scopedSettings;
 		private readonly ICustomerInfrastructureProviderService _customerInfrastructureProviderService;
 		private readonly IOfficeQueryInfrastructureProviderService _officeQueryInfrastructureProviderService;
@@ -96,7 +105,7 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Command
 
 		private async Task<ResponseData<bool>> ProcessOfficeChangesAsync(Customer customer, int officeId, PartialPutDocument<CustomerUpdateOfficeDto> officeDocument)
 		{
-			var officePatches = officeDocument.GetPatchInformation<CustomerUpdateOfficeDto, Office>();
+			var officePatches = officeDocument.GetPatchInformation(_mappings);
 			if (officePatches.IsFaulty)
 			{
 				return officePatches.ConvertTo<bool>();
@@ -106,6 +115,12 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Command
 			if (officeResult.IsFaulty)
 			{
 				return officeResult.ConvertTo<bool>();
+			}
+
+			officePatches = officePatches.Data.CheckAndConvertValueObjectPatches(officeResult.Data);
+			if (officePatches.IsFaulty)
+			{
+				return officePatches.ConvertTo<bool>();
 			}
 
 			var constraintsResult = await CheckValidationConstraintsAsync(officeResult.Data, officePatches.Data, customer.Id.Value);

@@ -34,7 +34,12 @@ namespace Eshava.Example.Infrastructure.Organizations.Offices
 			var instance = new Office
 			{
 				Name = model.Name,
-				CustomerId = creationBag.CustomerId
+				CustomerId = creationBag.CustomerId,
+				AddressStreet = model.Address?.Street,
+				AddressStreetNumber = model.Address?.StreetNumber,
+				AddressCity = model.Address?.City,
+				AddressZipCode = model.Address?.ZipCode,
+				AddressCountry = model.Address?.Country
 			};
 
 			return FromDomainModel(instance, model, creationBag);
@@ -49,6 +54,24 @@ namespace Eshava.Example.Infrastructure.Organizations.Offices
 			}
 
 			return base.GetPropertyName(patch);
+		}
+
+		protected override void MapValueObjects(IEnumerable<Patch<Domain.Organizations.SomeFeature.Office>> patches, IDictionary<string, object> dataModelChanges)
+		{
+			foreach (var patch in patches)
+			{
+				if (patch.PropertyName != nameof(Domain.Organizations.SomeFeature.Office.Address))
+				{
+					continue;
+				}
+
+				var address = patch.Value as Domain.Organizations.SomeFeature.Address;
+				dataModelChanges.Add(nameof(Office.AddressStreet), address?.Street);
+				dataModelChanges.Add(nameof(Office.AddressStreetNumber), address?.StreetNumber);
+				dataModelChanges.Add(nameof(Office.AddressCity), address?.City);
+				dataModelChanges.Add(nameof(Office.AddressZipCode), address?.ZipCode);
+				dataModelChanges.Add(nameof(Office.AddressCountry), address?.Country);
+			}
 		}
 	}
 }
