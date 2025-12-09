@@ -4,8 +4,6 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Command
 {
 	public class CustomerUpdateOfficeDto
 	{
-		[Newtonsoft.Json.JsonIgnore]
-		[System.Text.Json.Serialization.JsonIgnore]
 		public int Id { get; set; }
 
 		[Required]

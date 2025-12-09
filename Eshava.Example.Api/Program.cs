@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Scalar.AspNetCore;
 
 namespace Eshava.Example.Api
 {
@@ -51,7 +52,14 @@ namespace Eshava.Example.Api
 				.AddInfrastructure(configuration, environment)
 				.AddApplication(configuration, environment)
 				;
-						
+
+			services.AddOpenApi(options =>
+			{
+				options
+					.AddSchemaTransformer<PartialPutDocumentSchemaTransformer>()
+					;
+			});
+
 			services
 				.RegisterHostedServices(configuration);
 		}
@@ -68,6 +76,15 @@ namespace Eshava.Example.Api
 			app.UseStaticFiles();
 			app.UseRouting();
 			app.UseCors("AllowAll");
+
+			app.MapOpenApi();
+			app.MapScalarApiReference(options =>
+			{
+				options
+					.WithTitle("Example Api")
+					.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient)
+					;
+			});
 
 			new Endpoints.CustomerEndpoints().Map(app);
 			new Endpoints.OfficeEndpoints().Map(app);

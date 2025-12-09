@@ -10,10 +10,5 @@ namespace Eshava.DomainDrivenDesign.Application.PartialPut
 		{
 
 		}
-
-		/// <summary>
-		/// OpenApi work around - Property is always NULL
-		/// </summary>
-		public TDto Type { get; }
 	}
 }

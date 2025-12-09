@@ -14,11 +14,11 @@ namespace Eshava.Example.Api.Endpoints
 	{
 		public void Map(WebApplication app)
 		{
-			app.MapPost("/customers/search", SearchAsync);
-			app.MapGet("/customers/{id}", GetAsync);
-			app.MapPost("/customers", CreateAsync);
-			app.MapPut("/customers/{id}", UpdateAsync);
-			app.MapDelete("/customers/{id}", DeleteAsync);
+			app.MapPost("/customers/search", SearchAsync).Produces(200, typeof(CustomerSearchResponse));
+			app.MapGet("/customers/{id}", GetAsync).Produces(200, typeof(CustomerReadResponse));
+			app.MapPost("/customers", CreateAsync).Produces(200, typeof(CustomerCreateResponse));
+			app.MapPut("/customers/{id}", UpdateAsync).Produces(204);
+			app.MapDelete("/customers/{id}", DeleteAsync).Produces(204);
 		}
 
 		private async Task<IResult> SearchAsync(ICustomerSearchUseCase customerSearchUseCase, CustomerSearchRequest request)
@@ -43,10 +43,7 @@ namespace Eshava.Example.Api.Endpoints
 
 		private async Task<IResult> UpdateAsync(ICustomerUpdateUseCase customerUpdateUseCase, int id, CustomerUpdateRequest request)
 		{
-			if (request != null)
-			{
-				request.CustomerId = id;
-			}
+			request?.CustomerId = id;
 
 			return await customerUpdateUseCase.UpdateAsync(request).ToResultAsync();
 		}

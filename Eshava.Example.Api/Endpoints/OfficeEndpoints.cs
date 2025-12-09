@@ -14,11 +14,11 @@ namespace Eshava.Example.Api.Endpoints
 	{
 		public void Map(WebApplication app)
 		{
-			app.MapPost("/offices/search", SearchAsync);
-			app.MapGet("/offices/{id}", GetAsync);
-			app.MapPost("/customers/{customerId}/offices", CreateAsync);
-			app.MapPut("/customers/{customerId}/offices/{id}", UpdateAsync);
-			app.MapDelete("/customers/{customerId}/offices/{id}", DeleteAsync);
+			app.MapPost("/offices/search", SearchAsync).Produces(200, typeof(OfficeSearchResponse));
+			app.MapGet("/offices/{id}", GetAsync).Produces(200, typeof(OfficeReadResponse));
+			app.MapPost("/customers/{customerId}/offices", CreateAsync).Produces(200, typeof(CustomerCreateOfficeResponse));
+			app.MapPut("/customers/{customerId}/offices/{id}", UpdateAsync).Produces(204);
+			app.MapDelete("/customers/{customerId}/offices/{id}", DeleteAsync).Produces(204);
 		}
 
 		private async Task<IResult> SearchAsync(IOfficeSearchUseCase officeSearchUseCase, OfficeSearchRequest request)
@@ -38,10 +38,7 @@ namespace Eshava.Example.Api.Endpoints
 
 		private async Task<IResult> CreateAsync(ICustomerCreateOfficeUseCase customerCreateOfficeUseCase, int customerId, CustomerCreateOfficeRequest request)
 		{
-			if (request != null)
-			{
-				request.CustomerId = customerId;
-			}
+			request?.CustomerId = customerId;
 
 			return await customerCreateOfficeUseCase.CreateOfficeAsync(request).ToResultAsync();
 		}
