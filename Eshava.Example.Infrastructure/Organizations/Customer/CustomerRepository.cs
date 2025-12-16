@@ -31,6 +31,14 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 		private const string CUSTOMER = "customer";
 		private const string OFFICE = "office";
 
+		static CustomerRepository()
+		{
+			PropertyValueToDataMappings = new Dictionary<string, Func<object, object>>
+			{
+				{ "Example", domainValue => domainValue }
+			};
+		}
+
 		public CustomerRepository(
 			IDatabaseSettings databaseSettings,
 			ExampleScopedSettings scopedSettings,
@@ -122,14 +130,21 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 
 			var instance = new Customer
 			{
-				CompanyName = model.Name,
-				Classification = model.Classification,
-				AddressStreet = model.Address?.Street,
-				AddressStreetNumber = model.Address?.StreetNumber,
-				AddressCity = model.Address?.City,
-				AddressZipCode = model.Address?.ZipCode,
-				AddressCountry = model.Address?.Country
+				/* Example value mapping from domain to data */
+				CompanyName = PropertyValueToDataMappings.TryGetValue(nameof(Customer.CompanyName), out var companyNameMappged)
+					? (string)companyNameMappged(model.Name)
+					: model.Name,
+				Classification = model.Classification
 			};
+
+			if (model.Address is not null)
+			{
+				instance.AddressStreet = model.Address.Street;
+				instance.AddressStreetNumber = model.Address.StreetNumber;
+				instance.AddressCity = model.Address.City;
+				instance.AddressZipCode = model.Address.ZipCode;
+				instance.AddressCountry = model.Address.Country;
+			}
 
 			return FromDomainModel(instance, model);
 		}
@@ -155,18 +170,35 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 				}
 
 				var address = patch.Value as Domain.Organizations.SomeFeature.Address;
-				dataModelChanges.Add(nameof(Customer.AddressStreet), address?.Street);
-				dataModelChanges.Add(nameof(Customer.AddressStreetNumber), address?.StreetNumber);
-				dataModelChanges.Add(nameof(Customer.AddressCity), address?.City);
-				dataModelChanges.Add(nameof(Customer.AddressZipCode), address?.ZipCode);
-				dataModelChanges.Add(nameof(Customer.AddressCountry), address?.Country);
+				if (address is null)
+				{
+					dataModelChanges.Add(nameof(Customer.AddressStreet), null);
+					dataModelChanges.Add(nameof(Customer.AddressStreetNumber), null);
+					dataModelChanges.Add(nameof(Customer.AddressCity), null);
+					dataModelChanges.Add(nameof(Customer.AddressZipCode), null);
+					dataModelChanges.Add(nameof(Customer.AddressCountry), null);
+				}
+				else
+				{
+					/* Example value mapping from domain to data */
+					dataModelChanges.Add(nameof(Customer.AddressStreet), PropertyValueToDataMappings.TryGetValue(nameof(Customer.AddressStreet), out var addressStreetMappged)
+						? (string)addressStreetMappged(address.Street)
+						: address.Street);
+					dataModelChanges.Add(nameof(Customer.AddressStreetNumber), address.StreetNumber);
+					dataModelChanges.Add(nameof(Customer.AddressCity), address.City);
+					dataModelChanges.Add(nameof(Customer.AddressZipCode), address.ZipCode);
+					dataModelChanges.Add(nameof(Customer.AddressCountry), address.Country);
+				}
 			}
 		}
 
 		private static IEnumerable<Patch<Domain.Organizations.SomeFeature.Customer>> CreateValueObjects(Customer dataInstance, IValidationEngine validationEngine)
 		{
 			var address = new Domain.Organizations.SomeFeature.Address(
-				dataInstance.AddressStreet,
+				/* Example value mapping from data to domain  */
+				_customerPropertyValueToDomainMappings.TryGetValue(nameof(dataInstance.AddressStreet), out var addressStreetMapped)
+					? (string)addressStreetMapped(dataInstance.AddressStreet)
+					: dataInstance.AddressStreet,
 				dataInstance.AddressStreetNumber,
 				dataInstance.AddressCity,
 				dataInstance.AddressZipCode,
