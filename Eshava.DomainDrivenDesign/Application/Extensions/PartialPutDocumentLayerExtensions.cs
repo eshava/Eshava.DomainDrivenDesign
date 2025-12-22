@@ -23,7 +23,7 @@ namespace Eshava.DomainDrivenDesign.Application.Extensions
 			var targetType = typeof(Target);
 
 			CollectReplaceOperations(targetType, documentLayer, patches, mappings);
-			
+
 			return patches.ToIListResponseData();
 		}
 
@@ -132,7 +132,7 @@ namespace Eshava.DomainDrivenDesign.Application.Extensions
 			// Check for value objects
 			foreach (var layer in documentLayer.Layers.Where(l => l.Id is null))
 			{
-				CollectReplaceOperations(targetType, layer , patches, mappings);
+				CollectReplaceOperations(targetType, layer, patches, mappings);
 			}
 		}
 
@@ -173,9 +173,10 @@ namespace Eshava.DomainDrivenDesign.Application.Extensions
 				}
 
 				// Check for value object changes
-				if (layer.Layers.Count > 0)
+				var valueObjectLayers = layer.Layers.Where(l => l.Id is null).ToList();
+				if (valueObjectLayers.Count > 0)
 				{
-					CollectReplaceOperations((TIdentifier)layer.Id, layer.Layers, data, mappings, validationErrors);
+					CollectReplaceOperations((TIdentifier)layer.Id, valueObjectLayers, data, mappings, validationErrors);
 				}
 			}
 		}
