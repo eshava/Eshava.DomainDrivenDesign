@@ -106,7 +106,12 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 					var result = await connection.UpdatePatchAsync<TData>(changes);
 					if (!result)
 					{
-						return ResponseData<bool>.CreateFaultyResponse(MessageConstants.UPDATEDATAERROR);
+						var messageGuid = Logger.LogError(this, ScopedSettings, $"Error patching {typeof(TData).Name}", null, additional: new
+						{
+							EntityId = model.Id.Value
+						});
+
+						return ResponseData<bool>.CreateFaultyResponse(MessageConstants.UPDATEDATAERROR, messageGuid);
 					}
 
 					return true.ToResponseData();

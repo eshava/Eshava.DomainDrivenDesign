@@ -40,6 +40,12 @@ namespace Eshava.DomainDrivenDesign.Domain.Extensions
 						if (memberExpression.Expression is ParameterExpression)
 						{
 							// Domain: p => p.ExamplePropertyName
+							if (mapping.Domain.GetMemberExpressionString() == "Id" && Equals(dtoValue, dtoPropertyInfo.PropertyType.GetDefault()))
+							{
+								// Skip default value if it's the identifier property
+
+								continue;
+							}
 
 							patches.Add(Patch<TDomain>.Create(mapping.Domain, dtoValue));
 						}
@@ -68,6 +74,13 @@ namespace Eshava.DomainDrivenDesign.Domain.Extensions
 							continue;
 						}
 					}
+				}
+
+				if (dtoPropertyInfo.Name == "Id" && (dtoValue is null || Equals(dtoValue, dtoPropertyInfo.PropertyType.GetDefault())))
+				{
+					// Skip default value if it's the identifier property
+
+					continue;
 				}
 
 				if (!domainPropertyInfos.TryGetValue(dtoPropertyInfo.Name, out var domainPropertyInfo) || !domainPropertyInfo.CanWrite)
