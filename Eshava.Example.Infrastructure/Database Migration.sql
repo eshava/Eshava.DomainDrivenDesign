@@ -16,6 +16,7 @@ CREATE TABLE [organizations].[Customers]
 	[AddressCity] [nvarchar](50) NULL,
 	[AddressZipCode] [nvarchar](20) NULL,
 	[AddressCountry] [nvarchar](50) NULL,
+	[MetaData] [nvarchar](max) NULL,
     CONSTRAINT [PK_Organizations_Customers_Id] PRIMARY KEY CLUSTERED ([Id])
 ); 
 GO

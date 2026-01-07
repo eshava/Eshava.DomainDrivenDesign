@@ -1,4 +1,6 @@
-﻿using Eshava.Example.Domain.Organizations.SomeFeature;
+﻿using System;
+using System.Collections.Generic;
+using Eshava.Example.Domain.Organizations.SomeFeature;
 
 namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Queries.Search
 {
@@ -12,5 +14,7 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Queries
 		public string City { get; set; }
 		public string ZipCode { get; set; }
 		public string Country { get; set; }
+		public int Version { get; set; }
+		public IEnumerable<DateTime> VersionChangedAtUtc { get; set; }
 	}
 }

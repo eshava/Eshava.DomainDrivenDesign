@@ -93,6 +93,11 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 				foreach (var patch in patches)
 				{
 					var dataProperty = GetPropertyName(patch);
+					if (dataProperty.IsNullOrEmpty())
+					{
+						continue;
+					}
+
 					if (!changes.ContainsKey(dataProperty))
 					{
 						changes.Add(dataProperty, MapToDataPropertyValue(dataProperty, patch.Value));

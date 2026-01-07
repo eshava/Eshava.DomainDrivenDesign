@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 using Eshava.Core.Extensions;
 using Eshava.Core.Linq.Interfaces;
@@ -24,6 +25,8 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 		where TIdentifier : struct
 		where TScopedSettings : AbstractScopedSettings
 	{
+		private static readonly Type _typeValueObject = typeof(AbstractValueObject);
+
 		public AbstractDomainModelRepository(
 		   IDatabaseSettings databaseSettings,
 		   TScopedSettings scopedSettings,
@@ -95,10 +98,15 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 
 				var value = propertyInfo.GetValue(instance);
 				var domainMemberExpression = Expression.MakeMemberAccess(domainParameterExpression, domainPropertyInfo);
+				var domainValue = MapToDomainPropertyValue(domainPropertyInfo, propertyInfo.Name, value, propertyValueToDomainMappings);
+				if (domainValue is null)
+				{
+					continue;
+				}
 
 				patches.Add(Patch<TDomain1>.Create(
 					domainMemberExpression.ConvertToMemberExpressionFunction<TDomain1, object>(domainParameterExpression),
-					MapToDomainPropertyValue(propertyInfo.Name, value, propertyValueToDomainMappings)
+					domainValue
 				));
 			}
 
@@ -114,10 +122,15 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Repositories
 			return patches;
 		}
 
-		protected object MapToDomainPropertyValue(string dataPropertyName, object value, Dictionary<string, Func<object, object>> propertyValueToDomainMappings)
+		protected object MapToDomainPropertyValue(PropertyInfo domainModelPropertyInfo, string dataPropertyName, object value, Dictionary<string, Func<object, object>> propertyValueToDomainMappings)
 		{
-			return (propertyValueToDomainMappings?.TryGetValue(dataPropertyName, out var mapping) ?? false)
-				? mapping(value)
+			if (propertyValueToDomainMappings?.TryGetValue(dataPropertyName, out var mapping) ?? false)
+			{
+				return mapping(value);
+			}
+
+			return domainModelPropertyInfo.PropertyType.IsSubclassOf(_typeValueObject)
+				? null
 				: value;
 		}
 	}

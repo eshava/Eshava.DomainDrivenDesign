@@ -115,6 +115,7 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 					,{CUSTOMER}.{nameof(Customer.AddressCity)}
 					,{CUSTOMER}.{nameof(Customer.AddressZipCode)}
 					,{CUSTOMER}.{nameof(Customer.AddressCountry)}
+					,{CUSTOMER}.{nameof(Customer.MetaData)}
 					,{OFFICE}.{nameof(Offices.Office.Id)}
 					,{OFFICE}.{nameof(Offices.Office.Name)}
 					,{OFFICE}.{nameof(Offices.Office.AddressStreet)}
@@ -149,6 +150,8 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 							City = mapper.GetValue<string>(nameof(Customer.AddressCity), CUSTOMER),
 							ZipCode = mapper.GetValue<string>(nameof(Customer.AddressZipCode), CUSTOMER),
 							Country = mapper.GetValue<string>(nameof(Customer.AddressCountry), CUSTOMER),
+							Version = mapper.GetValue<MetaData>(nameof(Customer.MetaData), CUSTOMER)?.Version ?? 0,
+							VersionChangedAtUtc = mapper.GetValue<MetaData>(nameof(Customer.MetaData), CUSTOMER)?.Timestamps ?? [],
 							Offices = mapper.GetValue<int>(nameof(Offices.Office.Id), OFFICE) == default
 								? new List<DTOS_READ.CustomerReadOfficeDto>()
 								: new List<DTOS_READ.CustomerReadOfficeDto>
@@ -239,6 +242,8 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 						City = entity.AddressCity,
 						ZipCode = entity.AddressZipCode,
 						Country = entity.AddressCountry,
+						Version = entity.MetaData?.Version ?? 0,
+						VersionChangedAtUtc = entity.MetaData?.Timestamps ?? [],
 					})
 					.ToList();
 

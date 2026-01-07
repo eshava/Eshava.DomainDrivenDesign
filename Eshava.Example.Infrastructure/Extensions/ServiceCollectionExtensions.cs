@@ -57,6 +57,7 @@ namespace Eshava.Example.Infrastructure.Extensions
 			new DateTimeHandler().AddTypeHandler();
 			new DateOnlyHandler().AddTypeHandler();
 			new TimeOnlyHandler().AddTypeHandler();
+			new MetaDataHandler().AddTypeHandler();
 
 #if DEBUG
 			Eshava.Storm.Settings.RestrictToRegisteredModels = true;

@@ -9,6 +9,7 @@
 		public string AddressCity { get; set; }
 		public string AddressZipCode { get; set; }
 		public string AddressCountry { get; set; }
+		public MetaData MetaData { get; set; }
 
 		/// <summary>
 		/// Navigation Property

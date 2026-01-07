@@ -36,6 +36,7 @@ The events are distributed when saved (see Infrastructure Project).
 			* DomainModel1 
 			* DomainModel2
 			* ValueObject1
+			* ValueObject2
 			* C#-Enum1
 		* Model3-Name
 			* DomainModel3
@@ -101,12 +102,14 @@ When saving and loading aggregate models, the InfrastructureProviderService orch
 If, for example, a model consists of several individual models, the InfrastructureProviderService distributes the storage of the individual models to the respective repositories.
 In the current implementation, the information of a domain model and the associated value objects are mapped to the same data model.
 In principle, however, the information of a value object could also be stored in a separate table with reference to the main data model. 
+When processing value objects, a distinction is made between two types of value objects. On the one hand, there are value objects whose properties directly refer to properties of the data model (CompositionValueObject). On the other hand, there are value objects that refer as a whole to a property of the data model (UnitValueObject).
 The InfrastructureProviderServices has another task. It collects and distributes the events contained in the domain models. To do this, the domain model events are first converted into domain events. 
 
 * Infrastructure-Project
 	* Domain-Name
 		* Model1-Name
 			* DataModel1
+			* UnitValueObject2
 			* DataModel1DbConfiguration
 			* DomainModel1InfrastructureProviderService
 			* DomainModel1Repository

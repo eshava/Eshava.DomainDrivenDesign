@@ -35,7 +35,48 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 		{
 			PropertyValueToDataMappings = new Dictionary<string, Func<object, object>>
 			{
-				{ "Example", domainValue => domainValue }
+				{ "Example", domainValue => domainValue },
+				// #1: Two ways of implementing the value object conversion: #1 property mapping or #2 hard coded
+				//{
+				//  "MetaData", domainValue =>
+				//  {
+				//	  if(domainValue is null)
+				//	  {
+				//		  return null;
+				//	  }
+
+				//	  var metaData = domainValue as Domain.Organizations.SomeFeature.MetaData;
+
+				//	  return new MetaData
+				//	  {
+				//		  Version = metaData.Version,
+				//		  Timestamps = metaData.Timestamps
+				//	  };
+				//  }
+				//}
+			};
+
+			_customerPropertyValueToDomainMappings = new Dictionary<string, Func<object, object>>
+			{
+				{ "Example", dataValue => dataValue },
+				// #1: Two ways of implementing the value object conversion: #1 property mapping or #2 hard coded
+				//{
+				//  "MetaData", dataValue =>
+				//  {
+				//	  if(dataValue is null)
+				//	  {
+				//		  return null;
+				//	  }
+
+				//	  var metaData = dataValue as MetaData;
+
+				//	  return new Domain.Organizations.SomeFeature.MetaData
+				//	  (
+				//		  metaData.Version,
+				//		  metaData.Timestamps
+				//	  );
+				//  }
+				//}
 			};
 		}
 
@@ -134,7 +175,9 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 				CompanyName = PropertyValueToDataMappings.TryGetValue(nameof(Customer.CompanyName), out var companyNameMappged)
 					? (string)companyNameMappged(model.Name)
 					: model.Name,
-				Classification = model.Classification
+				Classification = model.Classification,
+				// #1: Two ways of implementing the value object conversion: #1 property mapping or #2 hard coded
+				//MetaData = (MetaData)PropertyValueToDataMappings[nameof(Customer.MetaData)](model.MetaData)
 			};
 
 			if (model.Address is not null)
@@ -146,11 +189,29 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 				instance.AddressCountry = model.Address.Country;
 			}
 
+			// #2: Two ways of implementing the value object conversion: #1 property mapping or #2 hard coded
+			if (model.MetaData is not null)
+			{
+				instance.MetaData = new MetaData
+				{
+					Version = model.MetaData.Version,
+					Timestamps = model.MetaData.Timestamps
+				};
+			}
+
 			return FromDomainModel(instance, model);
 		}
 
 		protected override string GetPropertyName(Patch<Domain.Organizations.SomeFeature.Customer> patch)
 		{
+			// #2: Two ways of implementing the value object conversion: #1 property mapping or #2 hard coded
+			// This code is needed to skip patch list processing and to enter the MapValueObjects method
+			// Only if the property name in the domain model is equal to the property name in the data model 
+			if (patch.PropertyName == "MetaData")
+			{
+				return null;
+			}
+
 			var mapping = _customerDataToCustomerDomain.FirstOrDefault(p => p.Domain.GetMemberExpressionString() == patch.PropertyName);
 			if (mapping.Domain is not null)
 			{
@@ -164,36 +225,57 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 		{
 			foreach (var patch in patches)
 			{
-				if (patch.PropertyName != nameof(Domain.Organizations.SomeFeature.Customer.Address))
+				if (patch.PropertyName == nameof(Domain.Organizations.SomeFeature.Customer.Address))
 				{
+					var address = patch.Value as Domain.Organizations.SomeFeature.Address;
+					if (address is null)
+					{
+						dataModelChanges.Add(nameof(Customer.AddressStreet), null);
+						dataModelChanges.Add(nameof(Customer.AddressStreetNumber), null);
+						dataModelChanges.Add(nameof(Customer.AddressCity), null);
+						dataModelChanges.Add(nameof(Customer.AddressZipCode), null);
+						dataModelChanges.Add(nameof(Customer.AddressCountry), null);
+					}
+					else
+					{
+						/* Example value mapping from domain to data */
+						dataModelChanges.Add(nameof(Customer.AddressStreet), PropertyValueToDataMappings.TryGetValue(nameof(Customer.AddressStreet), out var addressStreetMappged)
+							? (string)addressStreetMappged(address.Street)
+							: address.Street);
+						dataModelChanges.Add(nameof(Customer.AddressStreetNumber), address.StreetNumber);
+						dataModelChanges.Add(nameof(Customer.AddressCity), address.City);
+						dataModelChanges.Add(nameof(Customer.AddressZipCode), address.ZipCode);
+						dataModelChanges.Add(nameof(Customer.AddressCountry), address.Country);
+					}
+
 					continue;
 				}
 
-				var address = patch.Value as Domain.Organizations.SomeFeature.Address;
-				if (address is null)
+				// #2: Two ways of implementing the value object conversion: #1 property mapping or #2 hard coded
+				if (patch.PropertyName == nameof(Domain.Organizations.SomeFeature.Customer.MetaData))
 				{
-					dataModelChanges.Add(nameof(Customer.AddressStreet), null);
-					dataModelChanges.Add(nameof(Customer.AddressStreetNumber), null);
-					dataModelChanges.Add(nameof(Customer.AddressCity), null);
-					dataModelChanges.Add(nameof(Customer.AddressZipCode), null);
-					dataModelChanges.Add(nameof(Customer.AddressCountry), null);
-				}
-				else
-				{
-					/* Example value mapping from domain to data */
-					dataModelChanges.Add(nameof(Customer.AddressStreet), PropertyValueToDataMappings.TryGetValue(nameof(Customer.AddressStreet), out var addressStreetMappged)
-						? (string)addressStreetMappged(address.Street)
-						: address.Street);
-					dataModelChanges.Add(nameof(Customer.AddressStreetNumber), address.StreetNumber);
-					dataModelChanges.Add(nameof(Customer.AddressCity), address.City);
-					dataModelChanges.Add(nameof(Customer.AddressZipCode), address.ZipCode);
-					dataModelChanges.Add(nameof(Customer.AddressCountry), address.Country);
+					var metaData = patch.Value as Domain.Organizations.SomeFeature.MetaData;
+					if (metaData is null)
+					{
+						dataModelChanges.Add("MetaData", null);
+					}
+					else
+					{
+						dataModelChanges.Add("MetaData", new MetaData
+						{
+							Version = metaData.Version,
+							Timestamps = metaData.Timestamps
+						});
+					}
+
+					continue;
 				}
 			}
 		}
 
 		private static IEnumerable<Patch<Domain.Organizations.SomeFeature.Customer>> CreateValueObjects(Customer dataInstance, IValidationEngine validationEngine)
 		{
+			var patches = new List<Patch<Domain.Organizations.SomeFeature.Customer>>();
 			var address = new Domain.Organizations.SomeFeature.Address(
 				/* Example value mapping from data to domain  */
 				_customerPropertyValueToDomainMappings.TryGetValue(nameof(dataInstance.AddressStreet), out var addressStreetMapped)
@@ -206,10 +288,23 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 			);
 
 			var addressValidationResult = validationEngine.Validate(address);
+			if (addressValidationResult.IsValid)
+			{
+				patches.Add(Patch<Domain.Organizations.SomeFeature.Customer>.Create(p => p.Address, address));
+			}
 
-			return addressValidationResult.IsValid
-				? [Patch<Domain.Organizations.SomeFeature.Customer>.Create(p => p.Address, address)]
-				: [];
+			// #2: Two ways of implementing the value object conversion: #1 property mapping or #2 hard coded
+			if (dataInstance.MetaData is not null)
+			{
+				var metaData = new Domain.Organizations.SomeFeature.MetaData(dataInstance.MetaData.Version, dataInstance.MetaData.Timestamps);
+				var metaDataValidationResult = validationEngine.Validate(metaData);
+				if (metaDataValidationResult.IsValid)
+				{
+					patches.Add(Patch<Domain.Organizations.SomeFeature.Customer>.Create(p => p.MetaData, metaData));
+				}
+			}
+
+			return patches;
 		}
 
 		private static IEnumerable<Patch<Domain.Organizations.SomeFeature.Office>> CreateValueObjects(Offices.Office dataInstance, IValidationEngine validationEngine)

@@ -31,6 +31,7 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 		public Classification Classification { get; private set; }
 
 		public Address Address { get; private set; }
+		public MetaData MetaData { get; private set; }
 
 		public IReadOnlyList<Office> Offices => _offices.AsReadOnly();
 		public override string EventDomain => "organizations";
@@ -105,7 +106,15 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 				return areAllPatchesAllowedResult;
 			}
 
-			return Update(patches);
+			var updateResult = Update(patches);
+			if (updateResult.IsFaulty)
+			{
+				return updateResult;
+			}
+
+			IncreaseVersion();
+
+			return updateResult;
 		}
 
 		public override ResponseData<bool> Deactivate()
@@ -146,6 +155,8 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 				return actionCallbackResult.ConvertTo<Office>();
 			}
 
+			IncreaseVersion();
+
 			return createResult;
 		}
 
@@ -181,12 +192,28 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 
 		protected virtual ResponseData<bool> CreatedOrChangedOffice(Office office)
 		{
-			return Validate();
+			var validationResult = Validate();
+			if (validationResult.IsFaulty)
+			{
+				return validationResult;
+			}
+
+			IncreaseVersion();
+
+			return validationResult;
 		}
 
 		protected override void Init()
 		{
 			_officeChanged = CreatedOrChangedOffice;
+		}
+
+		protected override ResponseData<bool> Create(IList<Patch<Customer>> patches)
+		{
+			var metaData = new MetaData(1, [DateTime.UtcNow]);
+			patches.Add(Patch<Customer>.Create(p => p.MetaData, metaData));
+
+			return base.Create(patches);
 		}
 
 		private static Address CreateAddressInstance(string street, string streetNumber, string city, string zipCode, string country)
@@ -203,6 +230,32 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 			}
 
 			return new Address(street, streetNumber, city, zipCode, country);
+		}
+
+		private void IncreaseVersion()
+		{
+			if (IsPropertyChanged(nameof(MetaData)))
+			{
+				return;
+			}
+
+			Domain.Organizations.SomeFeature.MetaData metaData;
+			if (MetaData is null)
+			{
+				metaData = new MetaData(1, [DateTime.UtcNow]);
+			}
+			else
+			{
+				var version = MetaData.Version + 1;
+				var timestampes = new List<DateTime>(MetaData.Timestamps)
+				{
+					DateTime.UtcNow
+				};
+
+				metaData = new MetaData(version, timestampes);
+			}
+
+			ApplyPatches([Patch<Customer>.Create(p => p.MetaData, metaData)]);
 		}
 	}
 }
