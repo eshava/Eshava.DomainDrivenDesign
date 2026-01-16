@@ -145,6 +145,8 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 			_offices.Add(createResult.Data);
 			if (_officeChanged is null)
 			{
+				IncreaseVersion();
+
 				return createResult;
 			}
 
@@ -154,8 +156,6 @@ namespace Eshava.Example.Domain.Organizations.SomeFeature
 			{
 				return actionCallbackResult.ConvertTo<Office>();
 			}
-
-			IncreaseVersion();
 
 			return createResult;
 		}
