@@ -7,7 +7,6 @@ using Eshava.Core.Extensions;
 using Eshava.Core.Linq.Interfaces;
 using Eshava.Core.Models;
 using Eshava.DomainDrivenDesign.Application.Dtos;
-using Eshava.DomainDrivenDesign.Domain.Extensions;
 
 namespace Eshava.DomainDrivenDesign.Application.UseCases
 {
@@ -27,12 +26,12 @@ namespace Eshava.DomainDrivenDesign.Application.UseCases
 			_sortingQueryEngine = sortingQueryEngine;
 		}
 
-		protected ResponseData<FilterRequestDto<TDto>> GetFilterRequest(AbstractFilterDto filterDto, Dictionary<string, List<Expression<Func<TDto, object>>>> mappings = null, bool caseInsensitive = false)
+		protected virtual ResponseData<FilterRequestDto<TDto>> GetFilterRequest(AbstractFilterDto filterDto, Dictionary<string, List<Expression<Func<TDto, object>>>> mappings = null, bool caseInsensitive = false)
 		{
 			return GetFilterRequest<TDto>(filterDto, mappings, caseInsensitive);
 		}
 
-		protected ResponseData<FilterRequestDto<Target>> GetFilterRequest<Target>(AbstractFilterDto filterDto, Dictionary<string, List<Expression<Func<Target, object>>>> mappings = null, bool caseInsensitive = false)
+		protected virtual ResponseData<FilterRequestDto<Target>> GetFilterRequest<Target>(AbstractFilterDto filterDto, Dictionary<string, List<Expression<Func<Target, object>>>> mappings = null, bool caseInsensitive = false)
 			where Target : class
 		{
 			var sortFields = filterDto?.GetSortFields();
