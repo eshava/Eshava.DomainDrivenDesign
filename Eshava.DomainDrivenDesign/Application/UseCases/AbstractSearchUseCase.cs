@@ -14,17 +14,17 @@ namespace Eshava.DomainDrivenDesign.Application.UseCases
 		where TRequest : class
 		where TDto : class
 	{
-		private readonly IWhereQueryEngine _whereQueryEngine;
-		private readonly ISortingQueryEngine _sortingQueryEngine;
-
 		public AbstractSearchUseCase(
 			 IWhereQueryEngine whereQueryEngine,
 			 ISortingQueryEngine sortingQueryEngine
 		)
 		{
-			_whereQueryEngine = whereQueryEngine;
-			_sortingQueryEngine = sortingQueryEngine;
+			WhereQueryEngine = whereQueryEngine;
+			SortingQueryEngine = sortingQueryEngine;
 		}
+
+		protected IWhereQueryEngine WhereQueryEngine { get; }
+		protected ISortingQueryEngine SortingQueryEngine { get; }
 
 		protected virtual ResponseData<FilterRequestDto<TDto>> GetFilterRequest(AbstractFilterDto filterDto, Dictionary<string, List<Expression<Func<TDto, object>>>> mappings = null, bool caseInsensitive = false)
 		{
@@ -40,7 +40,7 @@ namespace Eshava.DomainDrivenDesign.Application.UseCases
 			var options = new Core.Linq.Models.WhereQueryEngineOptions { CaseInsensitive = caseInsensitive };
 
 			var whereQueryResult = filterfields != null || !searchTerm.IsNullOrEmpty()
-				? _whereQueryEngine.BuildQueryExpressions(filterfields ?? new object(), filterDto.GetSearchTerm(), mappings, options)
+				? WhereQueryEngine.BuildQueryExpressions(filterfields ?? new object(), filterDto.GetSearchTerm(), mappings, options)
 				: new List<Expression<Func<Target, bool>>>().ToIEnumerableResponseData()
 				;
 
@@ -50,7 +50,7 @@ namespace Eshava.DomainDrivenDesign.Application.UseCases
 			}
 
 			var sortQueryResult = sortFields != null
-				? _sortingQueryEngine.BuildSortConditions(sortFields, mappings)
+				? SortingQueryEngine.BuildSortConditions(sortFields, mappings)
 				: new List<Core.Linq.Models.OrderByCondition>().ToIEnumerableResponseData()
 				;
 
