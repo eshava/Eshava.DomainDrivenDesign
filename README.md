@@ -80,7 +80,7 @@ All validation rules that represent a connection between the domain model and th
 						* Model1ReadResponse
 						* Model1ReadUseCase
 						* IModel1ReadUseCase
-		* Nodel3-Name
+		* Model3-Name
 			* Commands
 				* ... 
 			* Queries

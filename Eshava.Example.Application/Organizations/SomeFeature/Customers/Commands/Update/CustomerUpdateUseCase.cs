@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Eshava.Core.Extensions;
 using Eshava.Core.Models;
+using Eshava.Core.Validation.Extension;
 using Eshava.Core.Validation.Interfaces;
 using Eshava.DomainDrivenDesign.Application.Dtos;
 using Eshava.DomainDrivenDesign.Application.Extensions;

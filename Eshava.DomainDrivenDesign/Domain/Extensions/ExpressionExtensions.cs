@@ -72,6 +72,25 @@ namespace Eshava.DomainDrivenDesign.Domain.Extensions
 			return memberExpression;
 		}
 
+		public static ResponseData<object> GetPropertyValue<T>(this Expression<Func<T, object>> sourceExpression, object root) where T : class
+		{
+			try
+			{
+				var sourceMemberExpression = GetMemberExpression(sourceExpression.Body);
+
+				var parent = sourceMemberExpression.Expression.GetObjectInstance(root, true);
+				var propertyInfo = parent.GetType().GetProperty(sourceMemberExpression.Member.Name);
+
+				var currentValue = propertyInfo.GetValue(parent, null);
+
+				return new ResponseData<object>(currentValue);
+			}
+			catch (Exception ex)
+			{
+				return ResponseData<object>.CreateInternalServerError(MessageConstants.CREATEDATAERROR, ex);
+			}
+		}
+
 		public static ResponseData<bool> SetPropertyValue<T>(this Expression<Func<T, object>> sourceExpression, object root, object value) where T : class
 		{
 			try

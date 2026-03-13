@@ -22,7 +22,7 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 		where TIdentifier : struct
 	{
 		private bool _isValid = false;
-		private Dictionary<string, Patch<TDomain>> _changes = [];
+		private Dictionary<string, (Patch<TDomain> Patch, object PreviousValue)> _changes = [];
 		private List<EntityEvent> _eventList = [];
 		private static ConcurrentDictionary<Type, ImmutableHashSet<string>> _autoPatchBlocked = new();
 
@@ -121,7 +121,10 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 
 		public IReadOnlyList<Patch<TDomain>> GetChanges()
 		{
-			return _changes.Values.ToList().AsReadOnly();
+			return _changes.Values
+				.Select(v => v.Patch)
+				.ToList()
+				.AsReadOnly();
 		}
 
 		public virtual ResponseData<bool> Deactivate()
@@ -137,17 +140,37 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 				return applyResponse;
 			}
 
+			var validationResult = Validate();
+			if (validationResult.IsFaulty)
+			{
+				return validationResult;
+			}
+
 			if (CreateDomainEvents)
 			{
 				AddEvent(DomainEventKeys.DEACTIVATED);
 			}
 
-			return Validate();
+			return validationResult;
 		}
 
 		public bool IsPropertyChanged(string propertyName)
 		{
 			return _changes.ContainsKey(propertyName);
+		}
+
+		public bool TryGetPreviousValue(string propertyName, out object previousValue)
+		{
+			if (!_changes.TryGetValue(propertyName, out var result))
+			{
+				previousValue = null;
+
+				return false;
+			}
+
+			previousValue = result.PreviousValue;
+
+			return true;
 		}
 
 		protected void AddEvent(string eventName, IEnumerable<string> changedProperties = null, object data = null, DateTime? processNotBeforeUtc = null)
@@ -178,14 +201,20 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 				return applyResponse;
 			}
 
+			ExecuteAfterAction();
+
+			var validationResult = Validate();
+			if (validationResult.IsFaulty)
+			{
+				return validationResult;
+			}
+
 			if (CreateDomainEvents)
 			{
 				AddEvent(DomainEventKeys.CHANGED, changedProperties: patches.Select(p => p.PropertyName).ToList());
 			}
 
-			ExecuteAfterAction();
-
-			return Validate();
+			return validationResult;
 		}
 
 		protected virtual ResponseData<bool> Create(IList<Patch<TDomain>> patches)
@@ -198,14 +227,20 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 				return applyResponse;
 			}
 
+			ExecuteAfterAction();
+
+			var validationResult = Validate();
+			if (validationResult.IsFaulty)
+			{
+				return validationResult;
+			}
+
 			if (CreateDomainEvents)
 			{
 				AddEvent(DomainEventKeys.CREATED);
 			}
 
-			ExecuteAfterAction();
-
-			return Validate();
+			return validationResult;
 		}
 
 		protected ResponseData<bool> AreAllPatchesAllowed(IList<Patch<TDomain>> patches)
@@ -230,10 +265,21 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 		{
 			var allSet = true;
 			var validationErrors = new List<ValidationError>();
-			var appliesPatches = new List<Patch<TDomain>>();
+			var appliesPatches = new List<(Patch<TDomain> Patch, object PreviousValue)>();
 
 			foreach (var patch in patches)
 			{
+				var previousValue = patch.Property.GetPropertyValue(this);
+				if (previousValue.IsFaulty)
+				{
+					validationErrors.Add(new ValidationError
+					{
+						PropertyName = patch.PropertyName,
+						ErrorType = previousValue.GetRawMessage(),
+						MethodType = nameof(ApplyPatches)
+					});
+				}
+
 				var result = patch.Property.SetPropertyValue(this, patch.Value);
 				allSet &= !result.IsFaulty;
 
@@ -249,7 +295,7 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 
 				if (result.Data)
 				{
-					appliesPatches.Add(patch);
+					appliesPatches.Add((patch, previousValue.Data));
 				}
 			}
 
@@ -290,16 +336,23 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 			_isValid = isValid;
 		}
 
-		protected void SetChange<TPropertyType>(Expression<Func<TDomain, TPropertyType>> property, TPropertyType value)
+		protected void SetChange<TPropertyType>(Expression<Func<TDomain, TPropertyType>> property, TPropertyType value, object previousValue)
 		{
-			SetChange(Patch<TDomain>.Create(property, value));
+			SetChange(Patch<TDomain>.Create(property, value), previousValue);
 		}
 
-		protected void SetChange(Patch<TDomain> patch)
+		protected void SetChange(Patch<TDomain> patch, object previousValue)
 		{
-			if (!_changes.TryAdd(patch.PropertyName, patch))
+			SetChange((patch, previousValue));
+		}
+
+		protected void SetChange((Patch<TDomain> Patch, object PreviousValue) change)
+		{
+			if (!_changes.TryAdd(change.Patch.PropertyName, change))
 			{
-				_changes[patch.PropertyName] = patch;
+				var previousValue = _changes[change.Patch.PropertyName].PreviousValue;
+
+				_changes[change.Patch.PropertyName] = (change.Patch, previousValue);
 			}
 		}
 
