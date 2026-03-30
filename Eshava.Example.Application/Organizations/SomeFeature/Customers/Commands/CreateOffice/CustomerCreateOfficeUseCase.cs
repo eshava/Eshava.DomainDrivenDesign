@@ -91,7 +91,7 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Command
 
 		public ResponseData<ValidationConfigurationResponse> GetValidationConfiguration()
 		{
-			return GetValidationConfiguration<CustomerCreateOfficeDto>(true);
+			return GetValidationConfiguration<CustomerCreateOfficeDto>(true, true);
 		}
 
 		private async Task<ResponseData<Office>> CreateOfficeAsync(Customer customer, CustomerCreateOfficeDto office)

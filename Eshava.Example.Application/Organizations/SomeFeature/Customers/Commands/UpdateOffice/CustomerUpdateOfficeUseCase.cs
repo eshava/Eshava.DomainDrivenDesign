@@ -100,7 +100,7 @@ namespace Eshava.Example.Application.Organizations.SomeFeature.Customers.Command
 
 		public ResponseData<ValidationConfigurationResponse> GetValidationConfiguration()
 		{
-			return GetValidationConfiguration<CustomerUpdateOfficeDto>(true);
+			return GetValidationConfiguration<CustomerUpdateOfficeDto>(true, true);
 		}
 
 		private async Task<ResponseData<bool>> ProcessOfficeChangesAsync(Customer customer, int officeId, PartialPutDocument<CustomerUpdateOfficeDto> officeDocument)

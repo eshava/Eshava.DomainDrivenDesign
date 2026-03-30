@@ -32,13 +32,13 @@ namespace Eshava.DomainDrivenDesign.Application.UseCases
 			return true.ToResponseDataAsync();
 		}
 
-		protected ResponseData<ValidationConfigurationResponse> GetValidationConfiguration<T>(bool produceTreeStructure = false) where T : class
+		protected ResponseData<ValidationConfigurationResponse> GetValidationConfiguration<T>(bool produceTreeStructure = false, bool keepCapitalLettersTogether = false) where T : class
 		{
 			return new ResponseData<ValidationConfigurationResponse>
 			{
 				Data = new ValidationConfigurationResponse
 				{
-					Configurations = _validationConfiguration.CalculateValidationRules<T>(produceTreeStructure).ToList()
+					Configurations = _validationConfiguration.CalculateValidationRules<T>(produceTreeStructure, keepCapitalLettersTogether).ToList()
 				}
 			};
 		}
