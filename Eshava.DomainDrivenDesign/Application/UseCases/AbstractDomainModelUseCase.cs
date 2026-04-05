@@ -39,19 +39,19 @@ namespace Eshava.DomainDrivenDesign.Application.UseCases
 			{
 				case CheckType.Existence when countResult.Data == 0:
 
-					return MessageConstants.INVALIDDATAERROR.ToFaultyResponse<bool>()
+					return MessageConstants.INVALIDDATA.ToFaultyResponse<bool>()
 						.AddValidationError(propertyName, MessageConstants.NOTEXISTING, propertyValue)
 						;
 
 				case CheckType.Unique when countResult.Data > 0:
 
-					return MessageConstants.INVALIDDATAERROR.ToFaultyResponse<bool>()
+					return MessageConstants.INVALIDDATA.ToFaultyResponse<bool>()
 						.AddValidationError(propertyName, MessageConstants.ALREADYEXISTING, propertyValue)
 						;
 
 				case CheckType.Assignment when countResult.Data > 0:
 
-					return MessageConstants.INVALIDDATAERROR.ToFaultyResponse<bool>()
+					return MessageConstants.INVALIDDATA.ToFaultyResponse<bool>()
 						.AddValidationError(propertyName, MessageConstants.STILLASSIGNED)
 							;
 			}

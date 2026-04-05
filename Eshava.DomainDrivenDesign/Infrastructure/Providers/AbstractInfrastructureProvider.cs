@@ -165,12 +165,12 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 		{
 			if (!entity.IsValid)
 			{
-				return MessageConstants.INVALIDDATAERROR.ToFaultyResponse<bool>();
+				return MessageConstants.INVALIDDATA.ToFaultyResponse<bool>();
 			}
 
 			if (!entity.IsChanged)
 			{
-				return MessageConstants.NOCHANGESERROR.ToFaultyResponse<bool>();
+				return MessageConstants.NOCHANGES.ToFaultyResponse<bool>();
 			}
 
 			return true.ToResponseData();

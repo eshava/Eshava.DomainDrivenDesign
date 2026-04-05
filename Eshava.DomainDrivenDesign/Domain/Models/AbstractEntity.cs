@@ -69,7 +69,7 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 		{
 			if (Id.HasValue && !Equals(Id.Value, default))
 			{
-				return MessageConstants.IMMUTABLEERROR.ToFaultyResponse<bool>()
+				return MessageConstants.IMMUTABLE.ToFaultyResponse<bool>()
 					.AddValidationError(nameof(Id), MessageConstants.ALREADYEXISTING);
 			}
 
@@ -182,12 +182,12 @@ namespace Eshava.DomainDrivenDesign.Domain.Models
 		{
 			if (!IsValid)
 			{
-				return MessageConstants.INVALIDDATAERROR.ToFaultyResponse<bool>().ToTask();
+				return MessageConstants.INVALIDDATA.ToFaultyResponse<bool>().ToTask();
 			}
 
 			if (!IsChanged)
 			{
-				return MessageConstants.NOCHANGESERROR.ToFaultyResponse<bool>().ToTask();
+				return MessageConstants.NOCHANGES.ToFaultyResponse<bool>().ToTask();
 			}
 
 			return true.ToResponseDataAsync();
