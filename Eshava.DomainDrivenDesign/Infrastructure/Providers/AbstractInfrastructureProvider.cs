@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Transactions;
 using Eshava.Core.Extensions;
@@ -40,41 +41,31 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 
 		public virtual async Task<ResponseData<TDomain>> SaveAsync(TDomain entity)
 		{
-			var isStorableResult = IsStorable(entity);
-			if (isStorableResult.IsFaulty)
+			if (!entity.IsValid)
 			{
-				return isStorableResult.ConvertTo<TDomain>();
+				return MessageConstants.INVALIDDATA.ToFaultyResponse<TDomain>();
 			}
 
-			if (entity.Id.HasValue)
+			var isChanged = entity.IsChanged;
+			if (isChanged)
 			{
-				if (entity.Status == DomainDrivenDesign.Domain.Enums.Status.Inactive)
+				var result = await SaveInternalAsync(entity);
+				if (result.IsFaulty)
 				{
-					var deleteResult = await DeleteAsync(entity);
-					if (deleteResult.IsFaulty)
-					{
-						return deleteResult.ConvertTo<TDomain>();
-					}
-
-					return entity.ToResponseData();
-				}
-
-				var updateResult = await UpdateAsync(entity);
-				if (updateResult.IsFaulty)
-				{
-					return updateResult.ConvertTo<TDomain>();
-				}
-			}
-			else
-			{
-				var createResult = await CreateAsync(entity);
-				if (createResult.IsFaulty)
-				{
-					return createResult.ConvertTo<TDomain>();
+					return result;
 				}
 			}
 
-			var domainEventResult = await BroadcastDomainEvents(entity.GetDomainEvents());
+			var domainEvents = entity.GetDomainEvents();
+			if (domainEvents.Count == 0 && !isChanged)
+			{
+				return MessageConstants.NOCHANGES.ToFaultyResponse<TDomain>();
+			}
+
+			var domainEventResult = domainEvents.Count == 0
+				? true.ToResponseData()
+				: await BroadcastDomainEvents(domainEvents);
+
 			if (domainEventResult.IsFaulty)
 			{
 				return domainEventResult.ConvertTo<TDomain>();
@@ -161,21 +152,6 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 			return true.ToResponseData();
 		}
 
-		protected ResponseData<bool> IsStorable(TDomain entity)
-		{
-			if (!entity.IsValid)
-			{
-				return MessageConstants.INVALIDDATA.ToFaultyResponse<bool>();
-			}
-
-			if (!entity.IsChanged)
-			{
-				return MessageConstants.NOCHANGES.ToFaultyResponse<bool>();
-			}
-
-			return true.ToResponseData();
-		}
-
 		protected virtual Task<ResponseData<bool>> ExcecutePrerequisitesActionsForCreateAsync(TDomain entity)
 		{
 			return true.ToResponseDataAsync();
@@ -209,6 +185,39 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 		protected virtual Task<ResponseData<bool>> BroadcastDomainEvents(IEnumerable<DomainEvent> domainEvents)
 		{
 			return true.ToResponseDataAsync();
+		}
+
+		private async Task<ResponseData<TDomain>> SaveInternalAsync(TDomain entity)
+		{
+			if (entity.Id.HasValue)
+			{
+				if (entity.Status == DomainDrivenDesign.Domain.Enums.Status.Inactive)
+				{
+					var deleteResult = await DeleteAsync(entity);
+					if (deleteResult.IsFaulty)
+					{
+						return deleteResult.ConvertTo<TDomain>();
+					}
+
+					return entity.ToResponseData();
+				}
+
+				var updateResult = await UpdateAsync(entity);
+				if (updateResult.IsFaulty)
+				{
+					return updateResult.ConvertTo<TDomain>();
+				}
+			}
+			else
+			{
+				var createResult = await CreateAsync(entity);
+				if (createResult.IsFaulty)
+				{
+					return createResult.ConvertTo<TDomain>();
+				}
+			}
+
+			return entity.ToResponseData();
 		}
 	}
 }
