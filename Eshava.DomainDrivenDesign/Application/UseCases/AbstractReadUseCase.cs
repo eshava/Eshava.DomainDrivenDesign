@@ -9,6 +9,11 @@ namespace Eshava.DomainDrivenDesign.Application.UseCases
 		where TDto : class
 	{
 
+		protected virtual Task<ResponseData<bool>> ExecuteBeforeAsync(TRequest request)
+		{
+			return true.ToResponseDataAsync();
+		}
+
 		protected virtual Task<ResponseData<TDto>> AdjustDtoAsync(TRequest request, TDto dto)
 		{
 			if (dto is null)

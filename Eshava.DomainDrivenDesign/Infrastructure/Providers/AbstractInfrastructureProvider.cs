@@ -64,7 +64,7 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 
 			var domainEventResult = domainEvents.Count == 0
 				? true.ToResponseData()
-				: await BroadcastDomainEvents(domainEvents);
+				: await BroadcastDomainEventsAsync(domainEvents);
 
 			if (domainEventResult.IsFaulty)
 			{
@@ -182,7 +182,7 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 			return true.ToResponseDataAsync();
 		}
 
-		protected virtual Task<ResponseData<bool>> BroadcastDomainEvents(IEnumerable<DomainEvent> domainEvents)
+		protected virtual Task<ResponseData<bool>> BroadcastDomainEventsAsync(IEnumerable<DomainEvent> domainEvents)
 		{
 			return true.ToResponseDataAsync();
 		}

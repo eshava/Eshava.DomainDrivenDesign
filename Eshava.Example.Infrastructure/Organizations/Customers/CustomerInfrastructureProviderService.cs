@@ -66,7 +66,7 @@ namespace Eshava.Example.Infrastructure.Organizations.Customers
 			return true.ToResponseData();
 		}
 
-		protected override async Task<ResponseData<bool>> BroadcastDomainEvents(IEnumerable<DomainEvent> domainEvents)
+		protected override async Task<ResponseData<bool>> BroadcastDomainEventsAsync(IEnumerable<DomainEvent> domainEvents)
 		{
 			foreach (var domainEvent in domainEvents)
 			{

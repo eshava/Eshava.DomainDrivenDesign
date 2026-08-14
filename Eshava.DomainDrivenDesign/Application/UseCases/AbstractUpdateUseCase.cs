@@ -25,7 +25,7 @@ namespace Eshava.DomainDrivenDesign.Application.UseCases
 			_validationConfiguration = validationConfiguration;
 		}
 
-		protected virtual Task<ResponseData<IList<Patch<TDomain>>>> ExecuteBeforeAsync(IList<Patch<TDomain>> patches, PartialPutDocument<TDto> document)
+		protected virtual Task<ResponseData<IList<Patch<TDomain>>>> ExecuteBeforeAsync(TIdentifier identifier, IList<Patch<TDomain>> patches, PartialPutDocument<TDto> document)
 		{
 			return patches.ToResponseDataAsync();
 		}
