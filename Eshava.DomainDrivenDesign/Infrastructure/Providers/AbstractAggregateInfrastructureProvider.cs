@@ -53,6 +53,11 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 		{
 			foreach (var entity in entities)
 			{
+				if (!entity.IsChanged)
+				{
+					continue;
+				}
+
 				if (entity.Id.HasValue)
 				{
 					if (entity.Status == Domain.Enums.Status.Inactive)
