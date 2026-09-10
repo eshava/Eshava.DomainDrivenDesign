@@ -200,6 +200,22 @@ namespace Eshava.DomainDrivenDesign.Application.PartialPut
 						continue;
 					}
 
+					// An object sent as null is a statement, the same one a null on a scalar makes: replace with
+					// nothing. Descending into it would produce a layer without operations, and the intent to
+					// clear the value object would be lost - a caller who wanted no change would have left the
+					// property out.
+					if (propertyElement.Value.ValueKind == JsonValueKind.Null)
+					{
+						operations.Add(new PartialPutOperation
+						(
+							propertyName: propertyInfo.Name,
+							value: null,
+							type: PartialPutOperationType.Replace
+						));
+
+						continue;
+					}
+
 					subLayers.Add(DeserializeObject(null, propertyInfo.Name, propertyInfo.PropertyType, propertyElement.Value, options));
 				}
 				else
