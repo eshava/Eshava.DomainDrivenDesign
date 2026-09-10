@@ -7,6 +7,10 @@ meant to standardise code and enforce a defined project structure. Published as 
 **Conventions:** documentation, code and commit messages are written in English. Line endings are
 pinned through `.gitattributes` — anything that may run on Linux must be checked out with LF.
 
+**Anything a consumer notices goes into [`CHANGELOG.md`](CHANGELOG.md)** under the version it is
+released in — changed behaviour, new members, fixed defects. Written while the change is made, not
+reconstructed at release time; the version number is the one the package is packed as.
+
 ## Layout
 
 | Project | Content |
