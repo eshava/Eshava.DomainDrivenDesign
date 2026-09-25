@@ -14,6 +14,12 @@ the Git history is the source for those.
 
 ### Changed
 
+* **`Eshava.Storm` and `Eshava.Storm.Linq` 1.1.0**, up from 1.0.41 and 1.0.14. They bring the PostgreSQL
+  dialect, and with 1.0.42 and 1.0.15 a set of fixes that change behaviour a consumer can notice —
+  among them `DateTimeOffset` properties now being written and read, a partial update with an
+  incomplete composite key being refused, and an owned object that is not set writing its columns as
+  `NULL`. **Read the changelog of `Eshava.Storm` before updating**; its *Changed* sections list what to
+  check.
 * **`DateOnlyHandler` and `TimeOnlyHandler` no longer require a `SqlParameter`.** They set
   `DbType.Date` and `DbType.Time` instead of casting the parameter to `SqlParameter`, which threw an
   `InvalidCastException` with any other provider. On SqlClient the two are the same — `DbType.Date` is
