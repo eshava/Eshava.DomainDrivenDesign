@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eshava.Example.Application"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eshava.Example.Api", "Eshava.Example.Api\Eshava.Example.Api.csproj", "{6862EAFB-440A-4015-B928-7D97C83CB73B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eshava.Test.DomainDrivenDesign", "Eshava.Test.DomainDrivenDesign\Eshava.Test.DomainDrivenDesign.csproj", "{4E6B2D19-8C3A-4F71-9A5E-0B7C1D2E3F48}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{6862EAFB-440A-4015-B928-7D97C83CB73B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6862EAFB-440A-4015-B928-7D97C83CB73B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6862EAFB-440A-4015-B928-7D97C83CB73B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E6B2D19-8C3A-4F71-9A5E-0B7C1D2E3F48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E6B2D19-8C3A-4F71-9A5E-0B7C1D2E3F48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E6B2D19-8C3A-4F71-9A5E-0B7C1D2E3F48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E6B2D19-8C3A-4F71-9A5E-0B7C1D2E3F48}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

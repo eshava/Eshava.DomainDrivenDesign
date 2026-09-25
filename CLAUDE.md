@@ -17,9 +17,10 @@ reconstructed at release time; the version number is the one the package is pack
 |---|---|
 | `Eshava.DomainDrivenDesign` | The library itself — abstract base classes for all four layers. |
 | `Eshava.Example.Domain` · `.Application` · `.Infrastructure` · `.Api` | A sample API demonstrating the approach. The infrastructure project also contains the SQL script for the sample tables. |
+| `Eshava.Test.DomainDrivenDesign` | MSTest with FluentAssertions and FakeItEasy, `net10.0`. Since 10.3.0; it covers what has been added since, not the library as a whole. |
 
 The sample is documentation, not a scratch pad. It is what readers of the README look at, so it
-has to stay consistent with the library. There is no test project in this repository.
+has to stay consistent with the library.
 
 ## Architectural Rules
 
@@ -76,7 +77,14 @@ domain events.
 **Entity Framework is deliberately not used, and its introduction is not planned.** The
 infrastructure base classes target SQL databases directly, via `Eshava.Storm`. The reasoning:
 EF only pays off if its models never leave the infrastructure layer, which this structure would
-have to guarantee separately anyway. Other database types are not implemented.
+have to guarantee separately anyway.
+
+**The provider is SQL Server by default and exchangeable.** `DatabaseSettings.CreateConnection` returns
+a `SqlConnection`; a subclass returns another connection — an `NpgsqlConnection` for PostgreSQL, which
+`Eshava.Storm` supports as a dialect. **The library takes no dependency on a second provider**, so
+anything it registers as a type handler has to work with any `IDbDataParameter`: set `DbType`, never
+cast to `SqlParameter`, and accept in `Parse` what each provider returns — SqlClient a `DateTime` for a
+`date`, Npgsql a `DateOnly`.
 
 ## Dependencies
 

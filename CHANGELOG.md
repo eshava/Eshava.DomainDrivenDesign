@@ -3,6 +3,29 @@
 Notable changes per released version, newest first. Versions before 10.2.13 are not documented here —
 the Git history is the source for those.
 
+## 10.3.0
+
+### Added
+
+* **The database connection can be created by another provider.** `DatabaseSettings` has a
+  `protected virtual CreateConnection(string connectionString)`; it returns a `SqlConnection`, as
+  `GetConnection` always did, and a subclass returns another connection instead — an
+  `NpgsqlConnection` for PostgreSQL. The library itself does not depend on another provider.
+
+### Changed
+
+* **`DateOnlyHandler` and `TimeOnlyHandler` no longer require a `SqlParameter`.** They set
+  `DbType.Date` and `DbType.Time` instead of casting the parameter to `SqlParameter`, which threw an
+  `InvalidCastException` with any other provider. On SqlClient the two are the same — `DbType.Date` is
+  `SqlDbType.Date`, `DbType.Time` is `SqlDbType.Time` — and the value written is unchanged.
+
+### Fixed
+
+* **`DateOnlyHandler` and `TimeOnlyHandler` read what Npgsql returns.** Npgsql returns a `date` column
+  as `DateOnly` and a `time` column as `TimeOnly`, where SqlClient returns `DateTime` and `TimeSpan`.
+  The handlers accepted only the latter and returned the default value for anything else — silently,
+  so every date and time read through Npgsql came back as `0001-01-01` and midnight. They accept both.
+
 ## 10.2.13
 
 ### Changed
