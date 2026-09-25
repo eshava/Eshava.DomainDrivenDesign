@@ -28,8 +28,8 @@
 		<PackageReference Include="Eshava.Core" Version="1.0.9" />
 		<PackageReference Include="Eshava.Core.Linq" Version="1.1.8" />
 		<PackageReference Include="Eshava.Core.Validation" Version="1.0.19" />
-		<PackageReference Include="Eshava.Storm" Version="1.0.41" />
-		<PackageReference Include="Eshava.Storm.Linq" Version="1.0.14" />
+		<PackageReference Include="Eshava.Storm" Version="1.1.0" />
+		<PackageReference Include="Eshava.Storm.Linq" Version="1.1.0" />
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">

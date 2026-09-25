@@ -23,9 +23,16 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Settings
 				throw new ArgumentNullException(nameof(ConnectionString));
 			}
 
-			var connection = new SqlConnection(ConnectionString);
+			return CreateConnection(ConnectionString);
+		}
 
-			return connection;
+		/// <summary>
+		/// Creates the connection for the connection string: a SqlConnection by default. Override it for another
+		/// provider, returning an NpgsqlConnection for PostgreSQL, for instance.
+		/// </summary>
+		protected virtual IDbConnection CreateConnection(string connectionString)
+		{
+			return new SqlConnection(connectionString);
 		}
 
 		public TransactionScope CreateTransactionScope(TransactionScopeAsyncFlowOption option = TransactionScopeAsyncFlowOption.Enabled)

@@ -1,6 +1,5 @@
 ﻿using Eshava.Storm.Handler;
 using Eshava.Storm.Interfaces;
-using Microsoft.Data.SqlClient;
 using System;
 using System.Data;
 
@@ -13,19 +12,25 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Storm
             return typeof(TimeSpan);
         }
 
+        /// <summary>
+        /// SQL Server returns a time as TimeSpan, Npgsql as TimeOnly
+        /// </summary>
         public override TimeOnly Parse(object value)
         {
-            if (value is TimeSpan timeSpan)
+            return value switch
             {
-                return TimeOnly.FromTimeSpan(timeSpan);
-            }
-
-            return default;
+                TimeSpan timeSpan => TimeOnly.FromTimeSpan(timeSpan),
+                TimeOnly timeOnly => timeOnly,
+                _ => default
+            };
         }
 
+        /// <summary>
+        /// DbType.Time is SqlDbType.Time on SqlClient and time on Npgsql, so the handler works with either provider
+        /// </summary>
         public override void SetValue(IDbDataParameter parameter, TimeOnly value)
         {
-            ((SqlParameter)parameter).SqlDbType = SqlDbType.Time;
+            parameter.DbType = DbType.Time;
 
             parameter.Value = value.ToTimeSpan();
         }
