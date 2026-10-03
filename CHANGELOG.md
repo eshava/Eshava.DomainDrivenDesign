@@ -3,6 +3,20 @@
 Notable changes per released version, newest first. Versions before 10.2.13 are not documented here —
 the Git history is the source for those.
 
+## 10.3.1
+
+### Fixed
+
+* **A value object built from an incomplete set of values no longer throws `MissingMethodException`.**
+  `CheckAndConvertValueObjectPatches` and `ToPatches` assemble a value object from the values that
+  were sent and fill every constructor parameter without one. When the domain model had no value
+  object yet — or always, in `ToPatches` — they filled it with a `DefaultExpression` object instead of
+  the default value, so no constructor matched and creating the instance threw
+  `Constructor on type '…' not found`. A typical case: an optional address added to a domain model
+  that had none, without a house number. Missing parameters are `null` for reference types and the
+  type's default for value types now. Missing parameters of an existing value object are still taken
+  from it, as before.
+
 ## 10.3.0
 
 ### Added

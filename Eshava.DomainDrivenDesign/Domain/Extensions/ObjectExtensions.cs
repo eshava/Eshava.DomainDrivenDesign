@@ -204,7 +204,7 @@ namespace Eshava.DomainDrivenDesign.Domain.Extensions
 					var propertyName = parameter.Name.ToPropertyName();
 					if (!valueObjectParts.Values.TryGetValue(propertyName, out var parameterValue))
 					{
-						parameterValue = Expression.Default(parameter.ParameterType);
+						parameterValue = parameter.ParameterType.GetDefault();
 					}
 
 					constructorParameterValues.Add(parameterValue);

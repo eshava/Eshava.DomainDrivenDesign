@@ -92,7 +92,7 @@ namespace Eshava.DomainDrivenDesign.Domain.Extensions
 					{
 						if (valueObject is null)
 						{
-							parameterValue = Expression.Default(parameter.ParameterType);
+							parameterValue = parameter.ParameterType.GetDefault();
 						}
 						else
 						{
