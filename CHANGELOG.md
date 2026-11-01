@@ -5,6 +5,13 @@ the Git history is the source for those.
 
 ## 10.3.2
 
+### Security
+
+* **`System.Security.Cryptography.Pkcs` is raised to the first patched version per target framework** — 8.0.2,
+  9.0.21 and 10.0.13. `Microsoft.Data.SqlClient` 7.0.0, which `Eshava.Storm` brings, resolved 8.0.1 and 9.0.13,
+  both affected by CVE-2026-84008 and CVE-2026-70162 (denial of service). The lowest patched version is taken
+  on purpose, so a consumer that pins one itself is not forced higher.
+
 ### Fixed
 
 * **An aggregate whose changes lie in its children alone no longer writes its own row.**
