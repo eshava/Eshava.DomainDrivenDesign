@@ -114,10 +114,14 @@ namespace Eshava.DomainDrivenDesign.Infrastructure.Providers
 				return updatePrerequisitesResult;
 			}
 
-			var updateResult = await Repository.UpdateAsync(entity);
-			if (updateResult.IsFaulty)
+			// An aggregate whose changes lie in its children alone keeps its own row untouched
+			if (entity.GetChanges().Count > 0)
 			{
-				return updateResult;
+				var updateResult = await Repository.UpdateAsync(entity);
+				if (updateResult.IsFaulty)
+				{
+					return updateResult;
+				}
 			}
 
 			var updateCompletionResult = await ExcecuteCompletionActionsForUpdateAsync(entity);

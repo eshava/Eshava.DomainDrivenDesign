@@ -3,6 +3,17 @@
 Notable changes per released version, newest first. Versions before 10.2.13 are not documented here —
 the Git history is the source for those.
 
+## 10.3.2
+
+### Fixed
+
+* **An aggregate whose changes lie in its children alone no longer writes its own row.**
+  `AbstractInfrastructureProvider.UpdateAsync` called the repository's `UpdateAsync` whenever the
+  aggregate was changed, and the repository patched the root row with nothing but its id and the
+  modification stamp — an `UPDATE` that changed no value of the root and moved its stamp. The root is
+  written only where `GetChanges()` holds a patch now; the prerequisites and the completion actions —
+  where an aggregate provider saves its children — run as before.
+
 ## 10.3.1
 
 ### Fixed
